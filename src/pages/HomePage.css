@@ -1,0 +1,135 @@
+
+.home-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 35px 24px;
+}
+
+.hero-banner {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+    padding: 55px 65px;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #fff7ed, #ffedd5);
+}
+
+.hero-content {
+    max-width: 540px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-label {
+    display: inline-block;
+    color: #d97706;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.hero-content h1 {
+    color: #292524;
+    font-size: 42px;
+    line-height: 1.25;
+    margin: 0 0 20px;
+}
+
+.hero-content p {
+    color: #57534e;
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.hero-button {
+    display: inline-block;
+    padding: 14px 26px;
+    border-radius: 7px;
+    background-color: #d97706;
+    color: #ffffff;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.hero-button:hover {
+    background-color: #b45309;
+}
+
+.hero-decoration {
+    width: 380px;
+    height: 320px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.paint-circle {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.circle-one {
+    width: 250px;
+    height: 250px;
+    background: #f59e0b;
+    top: 30px;
+    left: 60px;
+}
+
+.circle-two {
+    width: 150px;
+    height: 150px;
+    background: #ea580c;
+    top: 130px;
+    left: 0;
+}
+
+.circle-three {
+    width: 120px;
+    height: 120px;
+    background: #fcd34d;
+    top: 0;
+    right: 0;
+}
+
+.hero-message {
+    position: absolute;
+    top: 115px;
+    left: 95px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ffffff;
+    transform: rotate(-8deg);
+}
+
+.hero-message span {
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 5px;
+}
+
+.hero-message strong {
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+@media (max-width: 768px) {
+    .hero-banner {
+        padding: 35px 25px;
+    }
+
+    .hero-content h1 {
+        font-size: 32px;
+    }
+
+    .hero-decoration {
+        display: none;
+    }
+}
