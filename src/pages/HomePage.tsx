@@ -1,5 +1,6 @@
 
 import "./HomePage.css";
+import CategoryList from "../components/product/CategoryList";
 
 function HomePage() {
     return (
@@ -38,6 +39,7 @@ function HomePage() {
                     </div>
                 </div>
             </section>
+            <CategoryList />
         </main>
     );
 }
