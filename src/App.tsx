@@ -1,7 +1,7 @@
 import './App.css'
 import { BrowserRouter, Routes ,Route} from 'react-router'
-import LoginPage from './pages/login/LoginPage'
-import RegisterPage from './pages/register/RegisterPage'
+import LoginPage from './features/auth/pages/login/LoginPage'
+import RegisterPage from './features/auth/pages/register/RegisterPage'
 function App() {
 
   return (
