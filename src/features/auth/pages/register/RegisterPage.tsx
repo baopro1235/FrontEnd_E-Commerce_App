@@ -1,104 +1,228 @@
+import PaintmartPageLayout from '../../components/PaintmartPageLayout';
 import './RegisterPage.css';
+
+const provinces = [
+  'Hồ Chí Minh',
+  'Hà Nội',
+  'Đà Nẵng',
+  'Bình Dương',
+  'Đồng Nai',
+  'Cần Thơ',
+  'Hải Phòng',
+  'Bà Rịa - Vũng Tàu',
+  'An Giang',
+  'Tiền Giang',
+  'Long An',
+];
+
+const districts = [
+  'Quận Bình Tân',
+  'Huyện Bình Chánh',
+  'Thành phố Thủ Đức',
+  'Quận 1',
+  'Quận 3',
+  'Quận 5',
+  'Quận 7',
+  'Quận 10',
+  'Quận 12',
+  'Quận Tân Bình',
+  'Quận Tân Phú',
+  'Quận Gò Vấp',
+];
+
+const wards = [
+  'Phường Bình Trị Đông A',
+  'Phường Linh Tây',
+  'Xã Bình Chánh',
+];
 
 function RegisterPage() {
   return (
-    <main className="register-page">
-      <section className="register-card" aria-labelledby="register-title">
-        <h1 id="register-title">Đăng ký</h1>
-        <p className="register-intro">
-          Nếu bạn đã có một tài khoản với chúng tôi, xin vui lòng{' '}
-          <a href="/login">đăng nhập</a> tại trang đăng nhập.
-        </p>
+    <PaintmartPageLayout pageTitle="Đăng ký">
+      <h1 className="pm-register-title">Đăng ký</h1>
+      <p className="pm-register-intro">
+        Nếu bạn đã có một tài khoản với chúng tôi, xin vui lòng đăng nhập tại{' '}
+        <a href="/login">trang đăng nhập</a>.
+      </p>
 
-        <form className="register-form" onSubmit={(event) => event.preventDefault()}>
-          <div className="register-fields">
-            <div className="register-field">
-              <label htmlFor="phone">Điện thoại (*)</label>
-              <input id="phone" name="phone" type="tel" autoComplete="tel" required />
-            </div>
+      <form
+        className="pm-register-form"
+        onSubmit={(event) => event.preventDefault()}
+      >
+        <div className="pm-register-row">
+          <label htmlFor="phone">
+            Điện thoại<span className="pm-required">(*)</span>
+          </label>
+          <input
+            autoComplete="tel"
+            id="phone"
+            name="phone"
+            placeholder="Điện thoại"
+            required
+            type="text"
+          />
+        </div>
 
-            <div className="register-field">
-              <label htmlFor="email">E-Mail</label>
-              <input id="email" name="email" type="email" autoComplete="email" />
-            </div>
+        <div className="pm-register-row">
+          <label htmlFor="email">E-Mail</label>
+          <input
+            autoComplete="email"
+            id="email"
+            name="email"
+            placeholder="E-Mail"
+            type="email"
+          />
+        </div>
 
-            <div className="register-field">
-              <label htmlFor="full-name">Họ &amp; Tên (*)</label>
+        <div className="pm-register-row">
+          <label htmlFor="full-name">
+            Họ &amp; Tên<span className="pm-required">(*)</span>
+          </label>
+          <input
+            autoComplete="name"
+            id="full-name"
+            name="fullName"
+            placeholder="Họ & Tên"
+            required
+            type="text"
+          />
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="province">
+            Tỉnh/Thành Phố<span className="pm-required">(*)</span>
+          </label>
+          <select
+            autoComplete="address-level1"
+            defaultValue="Hồ Chí Minh"
+            id="province"
+            name="province"
+            required
+          >
+            <option value="">--- Vui lòng chọn ---</option>
+            {provinces.map((province) => (
+              <option key={province} value={province}>
+                {province}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="district">
+            Quận/Huyện<span className="pm-required">(*)</span>
+          </label>
+          <select
+            autoComplete="address-level2"
+            defaultValue=""
+            id="district"
+            name="district"
+            required
+          >
+            <option value="">--- Vui lòng chọn ---</option>
+            {districts.map((district) => (
+              <option key={district} value={district}>
+                {district}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="ward">Phường/Xã</label>
+          <select
+            autoComplete="address-level3"
+            defaultValue=""
+            id="ward"
+            name="ward"
+          >
+            <option value="">--- Vui lòng chọn ---</option>
+            {wards.map((ward) => (
+              <option key={ward} value={ward}>
+                {ward}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="address">
+            Địa chỉ<span className="pm-required">(*)</span>
+          </label>
+          <input
+            autoComplete="street-address"
+            id="address"
+            name="address"
+            placeholder="Địa chỉ"
+            required
+            type="text"
+          />
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="password">
+            Mật khẩu<span className="pm-required">(*)</span>
+          </label>
+          <input
+            autoComplete="new-password"
+            id="password"
+            name="password"
+            placeholder="Mật khẩu"
+            required
+            type="password"
+          />
+        </div>
+
+        <div className="pm-register-row">
+          <label htmlFor="confirm-password">
+            Xác nhận mật khẩu<span className="pm-required">(*)</span>
+          </label>
+          <input
+            autoComplete="new-password"
+            id="confirm-password"
+            name="confirmPassword"
+            placeholder="Xác nhận mật khẩu"
+            required
+            type="password"
+          />
+        </div>
+
+        <div className="pm-register-row pm-register-newsletter-row">
+          <span className="pm-register-label">Nhận bản tin</span>
+          <div className="pm-register-options">
+            <label>
+              <input name="newsletter" type="radio" value="yes" />
+              <span>Có</span>
+            </label>
+            <label>
               <input
-                id="full-name"
-                name="fullName"
-                type="text"
-                autoComplete="name"
-                required
+                defaultChecked
+                name="newsletter"
+                type="radio"
+                value="no"
               />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="province">Tỉnh/Thành Phố (*)</label>
-              <input id="province" name="province" type="text" autoComplete="address-level1" required />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="district">Quận/Huyện (*)</label>
-              <input id="district" name="district" type="text" autoComplete="address-level2" required />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="ward">Phường/Xã</label>
-              <input id="ward" name="ward" type="text" />
-            </div>
-
-            <div className="register-field register-field-wide">
-              <label htmlFor="address">Địa chỉ (*)</label>
-              <input id="address" name="address" type="text" autoComplete="street-address" required />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="password">Mật khẩu (*)</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-              />
-            </div>
-
-            <div className="register-field">
-              <label htmlFor="confirm-password">Xác nhận mật khẩu (*)</label>
-              <input
-                id="confirm-password"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-              />
-            </div>
+              <span>Không</span>
+            </label>
           </div>
+        </div>
 
-          <fieldset className="register-newsletter">
-            <legend>Nhận bản tin</legend>
-            <label>
-              <input type="radio" name="newsletter" value="yes" />
-              Có
-            </label>
-            <label>
-              <input type="radio" name="newsletter" value="no" />
-              Không
-            </label>
-          </fieldset>
-
-          <label className="register-privacy">
-            <input type="checkbox" name="privacyPolicy" required />
+        <div className="pm-register-actions">
+          <label className="pm-register-privacy">
+            <input
+              defaultChecked
+              name="privacyPolicy"
+              required
+              type="checkbox"
+            />
             <span>
-              Tôi đã đọc và đồng ý với <strong>Chính sách riêng tư</strong>
+              Tôi đã đọc và đồng ý với{' '}
+              <a href="#">Chính sách riêng tư</a>
             </span>
           </label>
-
-          <button type="submit">Đăng ký</button>
-        </form>
-      </section>
-    </main>
+          <button type="submit">Đăng ký thành viên</button>
+        </div>
+      </form>
+    </PaintmartPageLayout>
   );
 }
 
