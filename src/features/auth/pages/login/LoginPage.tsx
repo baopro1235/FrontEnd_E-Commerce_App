@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState} from 'react'
 import { Link } from 'react-router'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -15,9 +15,8 @@ import '../auth-page.css'
 function LoginPage() {
   const [message, setMessage] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setMessage('Chức năng đăng nhập chưa được kết nối.')
+  const handleLogin = () => {
+  
   }
 
   return (
@@ -34,7 +33,7 @@ function LoginPage() {
           </CardHeader>
 
           <CardContent>
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-5" onSubmit={handleLogin}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
