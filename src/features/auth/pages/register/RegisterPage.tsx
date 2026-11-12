@@ -1,229 +1,210 @@
-import PaintmartPageLayout from '../../components/PaintmartPageLayout';
-import './RegisterPage.css';
-
-const provinces = [
-  'Hồ Chí Minh',
-  'Hà Nội',
-  'Đà Nẵng',
-  'Bình Dương',
-  'Đồng Nai',
-  'Cần Thơ',
-  'Hải Phòng',
-  'Bà Rịa - Vũng Tàu',
-  'An Giang',
-  'Tiền Giang',
-  'Long An',
-];
-
-const districts = [
-  'Quận Bình Tân',
-  'Huyện Bình Chánh',
-  'Thành phố Thủ Đức',
-  'Quận 1',
-  'Quận 3',
-  'Quận 5',
-  'Quận 7',
-  'Quận 10',
-  'Quận 12',
-  'Quận Tân Bình',
-  'Quận Tân Phú',
-  'Quận Gò Vấp',
-];
-
-const wards = [
-  'Phường Bình Trị Đông A',
-  'Phường Linh Tây',
-  'Xã Bình Chánh',
-];
+import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import '../auth-page.css'
 
 function RegisterPage() {
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [message, setMessage] = useState('')
+  const passwordsDoNotMatch =
+    confirmPassword.length > 0 && password !== confirmPassword
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (password !== confirmPassword) {
+      setMessage('Mật khẩu xác nhận không khớp.')
+      return
+    }
+
+    setMessage('Chức năng đăng ký chưa được kết nối.')
+  }
+
   return (
-    <PaintmartPageLayout pageTitle="Đăng ký">
-      <h1 className="pm-register-title">Đăng ký</h1>
-      <p className="pm-register-intro">
-        Nếu bạn đã có một tài khoản với chúng tôi, xin vui lòng đăng nhập tại{' '}
-        <a href="/login">trang đăng nhập</a>.
-      </p>
+    <main className="auth-page">
+      <section aria-labelledby="register-title" className="w-full max-w-3xl">
+        <Card className="border-border/70 shadow-xl shadow-foreground/5">
+          <CardHeader className="gap-2 pb-2 text-center">
+            <h1 className="auth-title" id="register-title">
+              Tạo tài khoản
+            </h1>
+            <CardDescription>
+              Điền thông tin bên dưới để đăng ký thành viên Paintmart.
+            </CardDescription>
+          </CardHeader>
 
-      <form
-        className="pm-register-form"
-        onSubmit={(event) => event.preventDefault()}
-      >
-        <div className="pm-register-row">
-          <label htmlFor="phone">
-            Điện thoại<span className="pm-required">(*)</span>
-          </label>
-          <input
-            autoComplete="tel"
-            id="phone"
-            name="phone"
-            placeholder="Điện thoại"
-            required
-            type="text"
-          />
-        </div>
+          <CardContent>
+            <form
+              className="flex flex-col gap-6"
+              onSubmit={handleSubmit}
+            >
+              <FieldGroup className="grid gap-x-6 gap-y-5 md:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="phone">
+                    Điện thoại <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="090 123 4567"
+                    required
+                    type="tel"
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="email">E-Mail</label>
-          <input
-            autoComplete="email"
-            id="email"
-            name="email"
-            placeholder="E-Mail"
-            type="email"
-          />
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    autoComplete="email"
+                    id="email"
+                    name="email"
+                    placeholder="ban@example.com"
+                    type="email"
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="full-name">
-            Họ &amp; Tên<span className="pm-required">(*)</span>
-          </label>
-          <input
-            autoComplete="name"
-            id="full-name"
-            name="fullName"
-            placeholder="Họ & Tên"
-            required
-            type="text"
-          />
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="full-name">
+                    Họ và tên <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="name"
+                    id="full-name"
+                    name="fullName"
+                    placeholder="Nguyễn Văn An"
+                    required
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="province">
-            Tỉnh/Thành Phố<span className="pm-required">(*)</span>
-          </label>
-          <select
-            autoComplete="address-level1"
-            defaultValue="Hồ Chí Minh"
-            id="province"
-            name="province"
-            required
-          >
-            <option value="">--- Vui lòng chọn ---</option>
-            {provinces.map((province) => (
-              <option key={province} value={province}>
-                {province}
-              </option>
-            ))}
-          </select>
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="city">
+                    Tỉnh / Thành phố <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="address-level1"
+                    id="city"
+                    name="city"
+                    placeholder="Tỉnh hoặc thành phố"
+                    required
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="district">
-            Quận/Huyện<span className="pm-required">(*)</span>
-          </label>
-          <select
-            autoComplete="address-level2"
-            defaultValue=""
-            id="district"
-            name="district"
-            required
-          >
-            <option value="">--- Vui lòng chọn ---</option>
-            {districts.map((district) => (
-              <option key={district} value={district}>
-                {district}
-              </option>
-            ))}
-          </select>
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="district">
+                    Quận / Huyện <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="address-level2"
+                    id="district"
+                    name="district"
+                    placeholder="Quận hoặc huyện"
+                    required
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="ward">Phường/Xã</label>
-          <select
-            autoComplete="address-level3"
-            defaultValue=""
-            id="ward"
-            name="ward"
-          >
-            <option value="">--- Vui lòng chọn ---</option>
-            {wards.map((ward) => (
-              <option key={ward} value={ward}>
-                {ward}
-              </option>
-            ))}
-          </select>
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="ward">Phường / Xã</FieldLabel>
+                  <Input
+                    autoComplete="address-level3"
+                    id="ward"
+                    name="ward"
+                    placeholder="Phường hoặc xã"
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="address">
-            Địa chỉ<span className="pm-required">(*)</span>
-          </label>
-          <input
-            autoComplete="street-address"
-            id="address"
-            name="address"
-            placeholder="Địa chỉ"
-            required
-            type="text"
-          />
-        </div>
+                <Field className="md:col-span-2">
+                  <FieldLabel htmlFor="address">
+                    Địa chỉ <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="street-address"
+                    id="address"
+                    name="address"
+                    placeholder="Số nhà, tên đường"
+                    required
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="password">
-            Mật khẩu<span className="pm-required">(*)</span>
-          </label>
-          <input
-            autoComplete="new-password"
-            id="password"
-            name="password"
-            placeholder="Mật khẩu"
-            required
-            type="password"
-          />
-        </div>
+                <Field>
+                  <FieldLabel htmlFor="password">
+                    Mật khẩu <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    autoComplete="new-password"
+                    id="password"
+                    name="password"
+                    onChange={(event) => {
+                      setPassword(event.target.value)
+                      setMessage('')
+                    }}
+                    placeholder="Tạo mật khẩu"
+                    required
+                    type="password"
+                  />
+                </Field>
 
-        <div className="pm-register-row">
-          <label htmlFor="confirm-password">
-            Xác nhận mật khẩu<span className="pm-required">(*)</span>
-          </label>
-          <input
-            autoComplete="new-password"
-            id="confirm-password"
-            name="confirmPassword"
-            placeholder="Xác nhận mật khẩu"
-            required
-            type="password"
-          />
-        </div>
+                <Field data-invalid={passwordsDoNotMatch || undefined}>
+                  <FieldLabel htmlFor="confirm-password">
+                    Xác nhận mật khẩu <span aria-hidden="true">*</span>
+                  </FieldLabel>
+                  <Input
+                    aria-invalid={passwordsDoNotMatch}
+                    autoComplete="new-password"
+                    id="confirm-password"
+                    name="confirmPassword"
+                    onChange={(event) => {
+                      setConfirmPassword(event.target.value)
+                      setMessage('')
+                    }}
+                    placeholder="Nhập lại mật khẩu"
+                    required
+                    type="password"
+                  />
+                </Field>
+              </FieldGroup>
 
-        <div className="pm-register-row pm-register-newsletter-row">
-          <span className="pm-register-label">Nhận bản tin</span>
-          <div className="pm-register-options">
-            <label>
-              <input name="newsletter" type="radio" value="yes" />
-              <span>Có</span>
-            </label>
-            <label>
-              <input
-                defaultChecked
-                name="newsletter"
-                type="radio"
-                value="no"
-              />
-              <span>Không</span>
-            </label>
-          </div>
-        </div>
+              <Button className="h-11 w-full" type="submit">
+                Đăng ký
+              </Button>
 
-        <div className="pm-register-actions">
-          <label className="pm-register-privacy">
-            <input
-              defaultChecked
-              name="privacyPolicy"
-              required
-              type="checkbox"
-            />
-            <span>
-              Tôi đã đọc và đồng ý với{' '}
-              <a href="#">Chính sách riêng tư</a>
+              <p
+                aria-live="polite"
+                className="min-h-5 text-center text-sm text-muted-foreground"
+                role={passwordsDoNotMatch ? 'alert' : undefined}
+              >
+                {passwordsDoNotMatch
+                  ? 'Mật khẩu xác nhận không khớp.'
+                  : message}
+              </p>
+            </form>
+          </CardContent>
+
+          <CardFooter className="justify-center gap-1 border-t bg-muted/30 py-4 text-sm">
+            <span className="text-muted-foreground">
+              Đã có tài khoản?
             </span>
-          </label>
-          <button type="submit">Đăng ký thành viên</button>
-        </div>
-      </form>
-    </PaintmartPageLayout>
-  );
+            <Link
+              className={buttonVariants({ variant: 'link', size: 'sm' })}
+              to="/login"
+            >
+              Đăng nhập
+            </Link>
+          </CardFooter>
+        </Card>
+      </section>
+    </main>
+  )
 }
 
-export default RegisterPage;
+export default RegisterPage
