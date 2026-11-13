@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Check,
   ChevronRight,
@@ -10,8 +9,6 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
 import { Link, Navigate, useNavigate } from "react-router"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,147 +25,37 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { useAuth } from "@/context/AuthContext"
-import type { UserAddress } from "@/features/auth/auth.schema"
-import {
-  addressSchema,
-  passwordSchema,
-  profileSchema,
-  type AddressForm,
-  type PasswordForm,
-  type ProfileForm,
-} from "@/features/profile/profile.schema"
+import { useProfileActions } from "@/features/profile/hooks/useProfileActions"
 import "./profile-page.css"
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định."
-}
-
 function ProfilePage() {
-  const { user, logout, updateUser, addAddress, updateAddress, removeAddress, setDefaultAddress, changePassword } =
-    useAuth()
+  const {
+    user,
+    logout,
+    profileForm,
+    addressForm,
+    passwordForm,
+    profileMessage,
+    profileError,
+    addressMessage,
+    addressError,
+    passwordMessage,
+    passwordError,
+    isAddressFormOpen,
+    editingAddressId,
+    openNewAddressForm,
+    openEditAddressForm,
+    closeAddressForm,
+    saveProfile,
+    saveAddress,
+    chooseDefaultAddress,
+    deleteAddress,
+    savePassword,
+  } = useProfileActions()
   const navigate = useNavigate()
-  const [profileMessage, setProfileMessage] = useState("")
-  const [addressMessage, setAddressMessage] = useState("")
-  const [addressError, setAddressError] = useState("")
-  const [passwordMessage, setPasswordMessage] = useState("")
-  const [passwordError, setPasswordError] = useState("")
-  const [isAddressFormOpen, setIsAddressFormOpen] = useState(false)
-  const [editingAddressId, setEditingAddressId] = useState<string | null>(null)
-
-  const profileForm = useForm<ProfileForm>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: { fullName: "", phone: "" },
-    mode: "onTouched",
-  })
-  const addressForm = useForm<AddressForm>({
-    resolver: zodResolver(addressSchema),
-    defaultValues: { label: "Nhà riêng", street: "" },
-    mode: "onTouched",
-  })
-  const passwordForm = useForm<PasswordForm>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-    mode: "onTouched",
-  })
-
-  useEffect(() => {
-    profileForm.reset({
-      fullName: user?.fullName ?? "",
-      phone: user?.phone ?? "",
-    })
-  }, [profileForm, user?.fullName, user?.phone])
 
   if (!user) {
     return <Navigate replace to="/login" />
-  }
-
-  async function saveProfile(data: ProfileForm) {
-    setProfileMessage("")
-    try {
-      await updateUser(data)
-      setProfileMessage("Thông tin cá nhân đã được cập nhật.")
-    } catch (error) {
-      profileForm.setError("root.server", {
-        type: "server",
-        message: getErrorMessage(error),
-      })
-    }
-  }
-
-  function openNewAddressForm() {
-    setEditingAddressId(null)
-    setAddressError("")
-    addressForm.reset({ label: "Nhà riêng", street: "" })
-    setIsAddressFormOpen(true)
-  }
-
-  function openEditAddressForm(address: UserAddress) {
-    setEditingAddressId(address.id)
-    setAddressError("")
-    addressForm.reset({ label: address.label, street: address.street })
-    setIsAddressFormOpen(true)
-  }
-
-  async function saveAddress(data: AddressForm) {
-    setAddressError("")
-    setAddressMessage("")
-    try {
-      if (editingAddressId) {
-        await updateAddress(editingAddressId, data)
-        setAddressMessage("Địa chỉ đã được cập nhật.")
-      } else {
-        await addAddress(data)
-        setAddressMessage("Đã thêm địa chỉ giao hàng.")
-      }
-      setIsAddressFormOpen(false)
-      setEditingAddressId(null)
-      addressForm.reset({ label: "Nhà riêng", street: "" })
-    } catch (error) {
-      setAddressError(getErrorMessage(error))
-    }
-  }
-
-  async function chooseDefaultAddress(addressId: string) {
-    setAddressMessage("")
-    setAddressError("")
-    try {
-      await setDefaultAddress(addressId)
-      setAddressMessage("Đã cập nhật địa chỉ mặc định.")
-    } catch (error) {
-      setAddressError(getErrorMessage(error))
-    }
-  }
-
-  async function deleteAddress(address: UserAddress) {
-    if (!window.confirm(`Xóa địa chỉ "${address.label}"?`)) {
-      return
-    }
-
-    setAddressMessage("")
-    setAddressError("")
-    try {
-      await removeAddress(address.id)
-      setAddressMessage("Địa chỉ đã được xóa.")
-    } catch (error) {
-      setAddressError(getErrorMessage(error))
-    }
-  }
-
-  async function savePassword(data: PasswordForm) {
-    setPasswordError("")
-    setPasswordMessage("")
-    try {
-      await changePassword(data.currentPassword, data.newPassword)
-      passwordForm.reset()
-      setPasswordMessage("Mật khẩu đã được thay đổi.")
-    } catch (error) {
-      setPasswordError(getErrorMessage(error))
-    }
   }
 
   function signOut() {
@@ -301,9 +188,9 @@ function ProfilePage() {
                       />
                     </Field>
                   </FieldGroup>
-                  {profileForm.formState.errors.root?.server?.message && (
+                  {profileError && (
                     <p aria-live="polite" className="text-sm text-destructive">
-                      {profileForm.formState.errors.root.server.message}
+                      {profileError}
                     </p>
                   )}
                   {profileMessage && (
@@ -392,7 +279,7 @@ function ProfilePage() {
                     </FieldGroup>
                     <div className="flex justify-end gap-2">
                       <Button
-                        onClick={() => setIsAddressFormOpen(false)}
+                        onClick={closeAddressForm}
                         type="button"
                         variant="ghost"
                       >
