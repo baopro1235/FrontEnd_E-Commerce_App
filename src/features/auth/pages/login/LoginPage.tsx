@@ -1,5 +1,8 @@
-import { useState} from 'react'
-import { Link } from 'react-router'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router'
+import { z } from 'zod'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -8,15 +11,45 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/context/AuthContext'
 import '../auth-page.css'
+
+const loginSchema = z.object({
+  email: z.string().trim().email('Email không hợp lệ'),
+  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
 
 function LoginPage() {
   const [message, setMessage] = useState('')
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
+  })
 
-  const handleLogin = () => {
-  
+  async function handleLogin(data: LoginForm) {
+    setMessage('')
+    try {
+      await login(data)
+      navigate('/profile', { replace: true })
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Đã xảy ra lỗi không xác định.',
+      )
+    }
   }
 
   return (
@@ -33,21 +66,26 @@ function LoginPage() {
           </CardHeader>
 
           <CardContent>
-            <form className="flex flex-col gap-5" onSubmit={handleLogin}>
+            <form
+              className="flex flex-col gap-5"
+              onSubmit={form.handleSubmit(handleLogin)}
+              noValidate
+            >
               <FieldGroup>
-                <Field>
+                <Field data-invalid={!!form.formState.errors.email}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
                     autoComplete="email"
                     id="email"
-                    name="email"
                     placeholder="ban@example.com"
-                    required
                     type="email"
+                    aria-invalid={!!form.formState.errors.email}
+                    {...form.register('email')}
                   />
+                  <FieldError>{form.formState.errors.email?.message}</FieldError>
                 </Field>
 
-                <Field>
+                <Field data-invalid={!!form.formState.errors.password}>
                   <div className="flex items-center justify-between gap-3">
                     <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                     <Button
@@ -65,16 +103,23 @@ function LoginPage() {
                   <Input
                     autoComplete="current-password"
                     id="password"
-                    name="password"
                     placeholder="Nhập mật khẩu"
-                    required
                     type="password"
+                    aria-invalid={!!form.formState.errors.password}
+                    {...form.register('password')}
                   />
+                  <FieldError>
+                    {form.formState.errors.password?.message}
+                  </FieldError>
                 </Field>
               </FieldGroup>
 
-              <Button className="h-11 w-full" type="submit">
-                Đăng nhập
+              <Button
+                className="h-11 w-full"
+                disabled={form.formState.isSubmitting}
+                type="submit"
+              >
+                {form.formState.isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </Button>
 
               <p

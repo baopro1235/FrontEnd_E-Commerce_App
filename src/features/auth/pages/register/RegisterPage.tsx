@@ -60,7 +60,6 @@ function RegisterPage() {
       password: '',
       confirmPassword: '',
       provinceCode: '',
-      district: '',
       wardCode: '',
       streetAddress: '',
     },
@@ -172,7 +171,6 @@ function RegisterPage() {
         address: {
           provinceCode: province.code,
           provinceName: province.name,
-          district: data.district,
           ...(ward && {
             wardCode: ward.code,
             wardName: ward.name,
@@ -347,23 +345,6 @@ function RegisterPage() {
                     </Field>
                   )}
                 />
-
-                <Field data-invalid={!!errors.district}>
-                  <FieldLabel htmlFor="district">
-                    Quận / Huyện
-                    <span aria-hidden="true" className="text-destructive">
-                      (*)
-                    </span>
-                  </FieldLabel>
-                  <Input
-                    autoComplete="address-level2"
-                    id="district"
-                    placeholder="Quận hoặc huyện"
-                    aria-invalid={!!errors.district}
-                    {...register('district')}
-                  />
-                  <FieldError>{errors.district?.message}</FieldError>
-                </Field>
 
                 <Controller
                   control={control}

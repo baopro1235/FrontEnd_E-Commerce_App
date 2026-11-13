@@ -2,6 +2,7 @@ import type {
   AuthUser,
   RegisterAccountInput,
   UserAddress,
+  UserAddressInput,
 } from "../features/auth/auth.schema"
 
 const DB_KEY = "mock_users_db"
@@ -122,7 +123,6 @@ export const mockApi = {
       ...address,
       street: [
         address.streetAddress,
-        address.district,
         address.wardName,
         address.provinceName,
       ]
@@ -161,6 +161,87 @@ export const mockApi = {
     users[index] = { ...users[index], ...updatedData }
     saveUsers(users)
     return toAuthUser(users[index])
+  },
+
+  async addAddress(
+    userId: string,
+    address: UserAddressInput,
+  ): Promise<AuthUser> {
+    await wait(DELAY)
+    const users = getUsers()
+    const user = users.find((candidate) => candidate.id === userId)
+    if (!user) {
+      throw new Error("Không tìm thấy người dùng")
+    }
+
+    user.addresses.push({
+      id: `a${Date.now()}`,
+      ...address,
+      isDefault: user.addresses.length === 0,
+    })
+    saveUsers(users)
+    return toAuthUser(user)
+  },
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updatedData: UserAddressInput,
+  ): Promise<AuthUser> {
+    await wait(DELAY)
+    const users = getUsers()
+    const user = users.find((candidate) => candidate.id === userId)
+    const address = user?.addresses.find(
+      (candidate) => candidate.id === addressId,
+    )
+    if (!user || !address) {
+      throw new Error("Không tìm thấy địa chỉ")
+    }
+
+    Object.assign(address, updatedData)
+    saveUsers(users)
+    return toAuthUser(user)
+  },
+
+  async removeAddress(userId: string, addressId: string): Promise<AuthUser> {
+    await wait(DELAY)
+    const users = getUsers()
+    const user = users.find((candidate) => candidate.id === userId)
+    if (!user || !user.addresses.some((address) => address.id === addressId)) {
+      throw new Error("Không tìm thấy địa chỉ")
+    }
+
+    const removedAddress = user.addresses.find(
+      (address) => address.id === addressId,
+    )
+    user.addresses = user.addresses.filter(
+      (address) => address.id !== addressId,
+    )
+    if (removedAddress?.isDefault && user.addresses[0]) {
+      user.addresses[0].isDefault = true
+    }
+
+    saveUsers(users)
+    return toAuthUser(user)
+  },
+
+  async setDefaultAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<AuthUser> {
+    await wait(DELAY)
+    const users = getUsers()
+    const user = users.find((candidate) => candidate.id === userId)
+    if (!user || !user.addresses.some((address) => address.id === addressId)) {
+      throw new Error("Không tìm thấy địa chỉ")
+    }
+
+    user.addresses = user.addresses.map((address) => ({
+      ...address,
+      isDefault: address.id === addressId,
+    }))
+    saveUsers(users)
+    return toAuthUser(user)
   },
 
   async changePassword(

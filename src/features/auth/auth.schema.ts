@@ -29,11 +29,6 @@ export const registerSchema = z
       .max(64, "Mật khẩu không được vượt quá 64 ký tự"),
     confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
     provinceCode: z.string().min(1, "Vui lòng chọn tỉnh/thành phố"),
-    district: z
-      .string()
-      .trim()
-      .min(2, "Vui lòng nhập quận/huyện")
-      .max(100, "Tên quận/huyện quá dài"),
     wardCode: z.string(),
     streetAddress: z
       .string()
@@ -51,7 +46,6 @@ export type RegisterInput = z.infer<typeof registerSchema>
 export interface RegistrationAddress {
   provinceCode: number
   provinceName: string
-  district: string
   wardCode?: number
   wardName?: string
   streetAddress: string
@@ -69,6 +63,8 @@ export interface UserAddress {
   wardName?: string
   streetAddress?: string
 }
+
+export type UserAddressInput = Pick<UserAddress, "label" | "street">
 
 export interface AuthUser {
   id: string

@@ -9,6 +9,7 @@ import {
 import type {
   AuthUser,
   RegisterAccountInput,
+  UserAddressInput,
 } from "../features/auth/auth.schema";
 import { mockApi } from "../mocks/mockApis";
 
@@ -27,6 +28,14 @@ interface AuthContextType {
   updateUser: (
     fields: Partial<Pick<AuthUser, "fullName" | "phone">>,
   ) => Promise<void>;
+  addAddress: (address: UserAddressInput) => Promise<void>;
+  updateAddress: (
+    addressId: string,
+    address: UserAddressInput,
+  ) => Promise<void>;
+  removeAddress: (addressId: string) => Promise<void>;
+  setDefaultAddress: (addressId: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -90,6 +99,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updatedUser);
   };
 
+  const updateAddresses = async (
+    update: (userId: string) => Promise<AuthUser>,
+  ) => {
+    if (!user) {
+      throw new Error("User is not authenticated");
+    }
+
+    const updatedUser = await update(user.id);
+    localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
+  const addAddress = (address: UserAddressInput) =>
+    updateAddresses((userId) => mockApi.addAddress(userId, address));
+
+  const updateAddress = (addressId: string, address: UserAddressInput) =>
+    updateAddresses((userId) =>
+      mockApi.updateAddress(userId, addressId, address),
+    );
+
+  const removeAddress = (addressId: string) =>
+    updateAddresses((userId) => mockApi.removeAddress(userId, addressId));
+
+  const setDefaultAddress = (addressId: string) =>
+    updateAddresses((userId) => mockApi.setDefaultAddress(userId, addressId));
+
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    if (!user) {
+      throw new Error("User is not authenticated");
+    }
+
+    await mockApi.changePassword(user.id, { currentPassword, newPassword });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -100,6 +146,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateUser,
+        addAddress,
+        updateAddress,
+        removeAddress,
+        setDefaultAddress,
+        changePassword,
       }}
     >
       {children}
