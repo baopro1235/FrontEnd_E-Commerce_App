@@ -17,7 +17,13 @@ export const profileSchema = z.object({
 
 export const addressSchema = z.object({
   label: z.string().trim().min(2, "Vui lòng nhập tên địa chỉ").max(50),
-  street: z.string().trim().min(5, "Vui lòng nhập địa chỉ cụ thể").max(255),
+  streetAddress: z
+    .string()
+    .trim()
+    .min(5, "Vui lòng nhập địa chỉ cụ thể")
+    .max(255),
+  provinceCode: z.string().min(1, "Vui lòng chọn tỉnh/thành phố"),
+  wardCode: z.string(),
 })
 
 export const passwordSchema = z

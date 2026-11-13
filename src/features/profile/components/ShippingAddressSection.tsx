@@ -1,5 +1,5 @@
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react"
-import type { UseFormReturn } from "react-hook-form"
+import { Controller, type UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -10,11 +10,20 @@ import {
 } from "@/components/ui/card"
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { UserAddress } from "@/features/auth/auth.schema"
 import type { AddressForm } from "@/features/profile/profile.schema"
 
@@ -23,10 +32,20 @@ interface ShippingAddressSectionProps {
   form: UseFormReturn<AddressForm>
   message: string
   error: string
+  provinces: { code: number; name: string }[]
+  wards: { code: number; name: string }[]
+  selectedProvinceCode: string
+  isLoadingProvinces: boolean
+  isLoadingWards: boolean
+  provinceError: string
+  wardError: string
   isFormOpen: boolean
   editingAddressId: string | null
   onOpenNew: () => void
   onOpenEdit: (address: UserAddress) => void
+  onProvinceChange: (provinceCode: string) => void
+  onRetryProvinces: () => void
+  onRetryWards: () => void
   onClose: () => void
   onSave: (data: AddressForm) => Promise<void>
   onSetDefault: (addressId: string) => Promise<void>
@@ -38,10 +57,20 @@ function ShippingAddressSection({
   form,
   message,
   error,
+  provinces,
+  wards,
+  selectedProvinceCode,
+  isLoadingProvinces,
+  isLoadingWards,
+  provinceError,
+  wardError,
   isFormOpen,
   editingAddressId,
   onOpenNew,
   onOpenEdit,
+  onProvinceChange,
+  onRetryProvinces,
+  onRetryWards,
   onClose,
   onSave,
   onSetDefault,
@@ -97,19 +126,165 @@ function ShippingAddressSection({
                 />
                 <FieldError>{errors.label?.message}</FieldError>
               </Field>
-              <Field data-invalid={!!errors.street}>
+              <Field data-invalid={!!errors.streetAddress}>
                 <FieldLabel htmlFor="address-street">
                   Địa chỉ chi tiết
                 </FieldLabel>
                 <Input
                   autoComplete="street-address"
                   id="address-street"
-                  placeholder="Số nhà, đường, quận/huyện, tỉnh/thành"
-                  aria-invalid={!!errors.street}
-                  {...form.register("street")}
+                  placeholder="Số nhà, tên đường"
+                  aria-invalid={!!errors.streetAddress}
+                  {...form.register("streetAddress")}
                 />
-                <FieldError>{errors.street?.message}</FieldError>
+                <FieldError>{errors.streetAddress?.message}</FieldError>
               </Field>
+              <Controller
+                control={form.control}
+                name="provinceCode"
+                render={({ field }) => (
+                  <Field data-invalid={!!errors.provinceCode}>
+                    <FieldLabel htmlFor="address-province">
+                      Tỉnh / Thành phố
+                    </FieldLabel>
+                    <Select
+                      items={provinces.map((province) => ({
+                        label: province.name,
+                        value: String(province.code),
+                      }))}
+                      name={field.name}
+                      onValueChange={(value) => {
+                        const nextProvinceCode = value ?? ""
+                        field.onChange(nextProvinceCode)
+                        onProvinceChange(nextProvinceCode)
+                      }}
+                      value={field.value || null}
+                    >
+                      <SelectTrigger
+                        aria-describedby="address-province-status"
+                        aria-invalid={!!errors.provinceCode}
+                        className="w-full"
+                        disabled={isLoadingProvinces || !!provinceError}
+                        id="address-province"
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                      >
+                        <SelectValue placeholder="Chọn tỉnh / thành phố" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {provinces.map((province) => (
+                            <SelectItem
+                              key={province.code}
+                              value={String(province.code)}
+                            >
+                              {province.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription
+                      aria-live="polite"
+                      className={provinceError ? "text-destructive" : undefined}
+                      id="address-province-status"
+                    >
+                      {isLoadingProvinces
+                        ? "Đang tải tỉnh/thành phố..."
+                        : provinceError && (
+                            <>
+                              {provinceError}{" "}
+                              <Button
+                                className="h-auto p-0"
+                                onClick={onRetryProvinces}
+                                size="sm"
+                                type="button"
+                                variant="link"
+                              >
+                                Thử lại
+                              </Button>
+                            </>
+                          )}
+                    </FieldDescription>
+                    <FieldError>{errors.provinceCode?.message}</FieldError>
+                  </Field>
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="wardCode"
+                render={({ field }) => (
+                  <Field data-invalid={!!errors.wardCode}>
+                    <FieldLabel htmlFor="address-ward">Phường / Xã</FieldLabel>
+                    <Select
+                      items={wards.map((ward) => ({
+                        label: ward.name,
+                        value: String(ward.code),
+                      }))}
+                      name={field.name}
+                      onValueChange={(value) => field.onChange(value ?? "")}
+                      value={field.value || null}
+                    >
+                      <SelectTrigger
+                        aria-describedby="address-ward-status"
+                        aria-invalid={!!errors.wardCode}
+                        className="w-full"
+                        disabled={
+                          !selectedProvinceCode ||
+                          isLoadingWards ||
+                          !!wardError
+                        }
+                        id="address-ward"
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                      >
+                        <SelectValue
+                          placeholder={
+                            !selectedProvinceCode
+                              ? "Chọn tỉnh/thành phố trước"
+                              : "Chọn phường / xã"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {wards.map((ward) => (
+                            <SelectItem
+                              key={ward.code}
+                              value={String(ward.code)}
+                            >
+                              {ward.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription
+                      aria-live="polite"
+                      className={wardError ? "text-destructive" : undefined}
+                      id="address-ward-status"
+                    >
+                      {isLoadingWards
+                        ? "Đang tải phường/xã..."
+                        : wardError && (
+                            <>
+                              {wardError}{" "}
+                              <Button
+                                className="h-auto p-0"
+                                onClick={onRetryWards}
+                                size="sm"
+                                type="button"
+                                variant="link"
+                              >
+                                Thử lại
+                              </Button>
+                            </>
+                          )}
+                    </FieldDescription>
+                    <FieldError>{errors.wardCode?.message}</FieldError>
+                  </Field>
+                )}
+              />
             </FieldGroup>
             <div className="flex justify-end gap-2">
               <Button onClick={onClose} type="button" variant="ghost">

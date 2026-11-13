@@ -76,7 +76,8 @@ export interface UserAddress {
   streetAddress?: string
 }
 
-export type UserAddressInput = Pick<UserAddress, "label" | "street">
+export type UserAddressInput = Pick<UserAddress, "label" | "street"> &
+  RegistrationAddress
 
 export interface AuthUser {
   id: string

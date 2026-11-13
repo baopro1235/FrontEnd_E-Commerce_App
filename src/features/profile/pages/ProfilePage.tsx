@@ -19,12 +19,22 @@ function ProfilePage() {
     profileError,
     addressMessage,
     addressError,
+    provinces,
+    wards,
+    selectedProvinceCode,
+    isLoadingProvinces,
+    isLoadingWards,
+    provinceError,
+    wardError,
     passwordMessage,
     passwordError,
     isAddressFormOpen,
     editingAddressId,
     openNewAddressForm,
     openEditAddressForm,
+    handleProvinceChange,
+    retryProvinces,
+    retryWards,
     closeAddressForm,
     saveProfile,
     saveAddress,
@@ -86,14 +96,24 @@ function ProfilePage() {
               editingAddressId={editingAddressId}
               error={addressError}
               form={addressForm}
+              isLoadingProvinces={isLoadingProvinces}
+              isLoadingWards={isLoadingWards}
               isFormOpen={isAddressFormOpen}
               message={addressMessage}
+              onProvinceChange={handleProvinceChange}
               onClose={closeAddressForm}
               onDelete={deleteAddress}
               onOpenEdit={openEditAddressForm}
               onOpenNew={openNewAddressForm}
+              onRetryProvinces={retryProvinces}
+              onRetryWards={retryWards}
               onSave={saveAddress}
               onSetDefault={chooseDefaultAddress}
+              provinceError={provinceError}
+              provinces={provinces}
+              selectedProvinceCode={selectedProvinceCode}
+              wardError={wardError}
+              wards={wards}
             />
             <SecuritySection
               error={passwordError}

@@ -11,6 +11,7 @@ import {
   type PasswordForm,
   type ProfileForm,
 } from "@/features/profile/profile.schema"
+import { addressApi, type Province, type Ward } from "@/services/addressApi"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định."
@@ -35,6 +36,15 @@ export function useProfileActions() {
   const [passwordError, setPasswordError] = useState("")
   const [isAddressFormOpen, setIsAddressFormOpen] = useState(false)
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null)
+  const [provinces, setProvinces] = useState<Province[]>([])
+  const [wards, setWards] = useState<Ward[]>([])
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState("")
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(true)
+  const [isLoadingWards, setIsLoadingWards] = useState(false)
+  const [provinceError, setProvinceError] = useState("")
+  const [wardError, setWardError] = useState("")
+  const [provinceRetryCount, setProvinceRetryCount] = useState(0)
+  const [wardRetryCount, setWardRetryCount] = useState(0)
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -43,7 +53,12 @@ export function useProfileActions() {
   })
   const addressForm = useForm<AddressForm>({
     resolver: zodResolver(addressSchema),
-    defaultValues: { label: "Nhà riêng", street: "" },
+    defaultValues: {
+      label: "Nhà riêng",
+      streetAddress: "",
+      provinceCode: "",
+      wardCode: "",
+    },
     mode: "onTouched",
   })
   const passwordForm = useForm<PasswordForm>({
@@ -64,6 +79,79 @@ export function useProfileActions() {
     })
   }, [resetProfileForm, user?.fullName, user?.phone])
 
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadProvinces() {
+      setIsLoadingProvinces(true)
+      setProvinceError("")
+
+      try {
+        setProvinces(await addressApi.getProvinces(controller.signal))
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setProvinceError(
+            `Không thể tải danh sách tỉnh/thành phố: ${getErrorMessage(error)}`,
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingProvinces(false)
+        }
+      }
+    }
+
+    void loadProvinces()
+    return () => controller.abort()
+  }, [provinceRetryCount])
+
+  useEffect(() => {
+    if (!selectedProvinceCode) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    async function loadWards() {
+      setIsLoadingWards(true)
+      setWardError("")
+
+      try {
+        setWards(
+          await addressApi.getWards(
+            Number(selectedProvinceCode),
+            controller.signal,
+          ),
+        )
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setWardError(
+            `Không thể tải danh sách phường/xã: ${getErrorMessage(error)}`,
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingWards(false)
+        }
+      }
+    }
+
+    void loadWards()
+    return () => controller.abort()
+  }, [selectedProvinceCode, wardRetryCount])
+
+  function handleProvinceChange(provinceCode: string) {
+    setSelectedProvinceCode(provinceCode)
+    addressForm.setValue("wardCode", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+    setWards([])
+    setWardError("")
+    setIsLoadingWards(false)
+    setWardRetryCount(0)
+  }
+
   async function saveProfile(data: ProfileForm) {
     setProfileMessage("")
     setProfileError("")
@@ -78,14 +166,37 @@ export function useProfileActions() {
   function openNewAddressForm() {
     setEditingAddressId(null)
     setAddressError("")
-    addressForm.reset({ label: "Nhà riêng", street: "" })
+    addressForm.reset({
+      label: "Nhà riêng",
+      streetAddress: "",
+      provinceCode: "",
+      wardCode: "",
+    })
+    setSelectedProvinceCode("")
+    setWards([])
+    setWardError("")
+    setIsLoadingWards(false)
     setIsAddressFormOpen(true)
   }
 
   function openEditAddressForm(address: UserAddress) {
     setEditingAddressId(address.id)
     setAddressError("")
-    addressForm.reset({ label: address.label, street: address.street })
+    const provinceCode = String(address.provinceCode ?? "")
+    addressForm.reset({
+      label: address.label,
+      streetAddress: address.streetAddress ?? address.street,
+      provinceCode,
+      wardCode: String(address.wardCode ?? ""),
+    })
+    if (provinceCode !== selectedProvinceCode) {
+      setWards([])
+      setWardError("")
+    }
+    setSelectedProvinceCode(provinceCode)
+    if (!provinceCode) {
+      setIsLoadingWards(false)
+    }
     setIsAddressFormOpen(true)
   }
 
@@ -97,16 +208,60 @@ export function useProfileActions() {
   async function saveAddress(data: AddressForm) {
     setAddressError("")
     setAddressMessage("")
+
+    const province = provinces.find(
+      (item) => item.code === Number(data.provinceCode),
+    )
+    const ward = data.wardCode
+      ? wards.find((item) => item.code === Number(data.wardCode))
+      : undefined
+
+    if (!province) {
+      addressForm.setError("provinceCode", {
+        type: "validate",
+        message: "Vui lòng chọn tỉnh/thành phố hợp lệ.",
+      })
+      return
+    }
+
+    if (data.wardCode && !ward) {
+      addressForm.setError("wardCode", {
+        type: "validate",
+        message: "Vui lòng chọn phường/xã hợp lệ.",
+      })
+      return
+    }
+
+    const address = {
+      label: data.label,
+      streetAddress: data.streetAddress,
+      provinceCode: province.code,
+      provinceName: province.name,
+      wardCode: ward?.code,
+      wardName: ward?.name,
+      street: [data.streetAddress, ward?.name, province.name]
+        .filter(Boolean)
+        .join(", "),
+    }
+
     try {
       if (editingAddressId) {
-        await updateAddress(editingAddressId, data)
+        await updateAddress(editingAddressId, address)
         setAddressMessage("Địa chỉ đã được cập nhật.")
       } else {
-        await addAddress(data)
+        await addAddress(address)
         setAddressMessage("Đã thêm địa chỉ giao hàng.")
       }
       closeAddressForm()
-      addressForm.reset({ label: "Nhà riêng", street: "" })
+      addressForm.reset({
+        label: "Nhà riêng",
+        streetAddress: "",
+        provinceCode: "",
+        wardCode: "",
+      })
+      setSelectedProvinceCode("")
+      setWards([])
+      setIsLoadingWards(false)
     } catch (error) {
       setAddressError(getErrorMessage(error))
     }
@@ -160,6 +315,13 @@ export function useProfileActions() {
     profileError,
     addressMessage,
     addressError,
+    provinces,
+    wards,
+    selectedProvinceCode,
+    isLoadingProvinces,
+    isLoadingWards,
+    provinceError,
+    wardError,
     passwordMessage,
     passwordError,
     isAddressFormOpen,
@@ -167,6 +329,9 @@ export function useProfileActions() {
     openNewAddressForm,
     openEditAddressForm,
     closeAddressForm,
+    handleProvinceChange,
+    retryProvinces: () => setProvinceRetryCount((count) => count + 1),
+    retryWards: () => setWardRetryCount((count) => count + 1),
     saveProfile,
     saveAddress,
     chooseDefaultAddress,
