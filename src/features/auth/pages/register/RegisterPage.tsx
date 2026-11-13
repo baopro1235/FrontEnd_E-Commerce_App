@@ -1,6 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
 import { Link } from 'react-router'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -25,170 +23,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuth } from '@/context/AuthContext'
-import {
-  registerSchema,
-  type RegisterInput,
-} from '@/features/auth/auth.schema'
-import { addressApi, type Province, type Ward } from '@/services/addressApi'
+import { useRegisterActions } from '@/features/auth/hooks/useRegisterActions'
 import '../auth-page.css'
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : 'Đã xảy ra lỗi không xác định.'
-}
-
 function RegisterPage() {
-  const { register: registerUser } = useAuth()
-  const [provinces, setProvinces] = useState<Province[]>([])
-  const [wards, setWards] = useState<Ward[]>([])
-  const [selectedProvinceCode, setSelectedProvinceCode] = useState('')
-  const [isLoadingProvinces, setIsLoadingProvinces] = useState(true)
-  const [isLoadingWards, setIsLoadingWards] = useState(false)
-  const [provinceError, setProvinceError] = useState('')
-  const [wardError, setWardError] = useState('')
-  const [provinceRetryCount, setProvinceRetryCount] = useState(0)
-  const [wardRetryCount, setWardRetryCount] = useState(0)
-  const [successMessage, setSuccessMessage] = useState('')
-  const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: '',
-      phone: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      provinceCode: '',
-      wardCode: '',
-      streetAddress: '',
-    },
-    mode: 'onTouched',
-  })
+  const {
+    form,
+    provinces,
+    wards,
+    selectedProvinceCode,
+    isLoadingProvinces,
+    isLoadingWards,
+    provinceError,
+    wardError,
+    successMessage,
+    handleProvinceChange,
+    retryProvinces,
+    retryWards,
+    onSubmit,
+  } = useRegisterActions()
   const {
     control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
-    reset,
-    setError,
-    setValue,
   } = form
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    async function loadProvinces() {
-      setIsLoadingProvinces(true)
-      setProvinceError('')
-
-      try {
-        const data = await addressApi.getProvinces(controller.signal)
-        setProvinces(data)
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          setProvinceError(
-            `Không thể tải danh sách tỉnh/thành phố: ${getErrorMessage(error)}`,
-          )
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoadingProvinces(false)
-        }
-      }
-    }
-
-    void loadProvinces()
-    return () => controller.abort()
-  }, [provinceRetryCount])
-
-  useEffect(() => {
-    if (!selectedProvinceCode) {
-      return
-    }
-
-    const controller = new AbortController()
-
-    async function loadWards() {
-      setIsLoadingWards(true)
-      setWardError('')
-
-      try {
-        const data = await addressApi.getWards(
-          Number(selectedProvinceCode),
-          controller.signal,
-        )
-        setWards(data)
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          setWardError(
-            `Không thể tải danh sách phường/xã: ${getErrorMessage(error)}`,
-          )
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoadingWards(false)
-        }
-      }
-    }
-
-    void loadWards()
-    return () => controller.abort()
-  }, [selectedProvinceCode, wardRetryCount])
-
-  async function onSubmit(data: RegisterInput) {
-    setSuccessMessage('')
-
-    const province = provinces.find(
-      (item) => item.code === Number(data.provinceCode),
-    )
-    const ward = data.wardCode
-      ? wards.find((item) => item.code === Number(data.wardCode))
-      : undefined
-
-    if (!province) {
-      setError('provinceCode', {
-        type: 'validate',
-        message: 'Vui lòng chọn tỉnh/thành phố hợp lệ.',
-      })
-      return
-    }
-
-    if (data.wardCode && !ward) {
-      setError('wardCode', {
-        type: 'validate',
-        message: 'Vui lòng chọn phường/xã hợp lệ.',
-      })
-      return
-    }
-
-    try {
-      await registerUser({
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        address: {
-          provinceCode: province.code,
-          provinceName: province.name,
-          ...(ward && {
-            wardCode: ward.code,
-            wardName: ward.name,
-          }),
-          streetAddress: data.streetAddress,
-        },
-      })
-      setSuccessMessage('Đăng ký thành công. Bạn đã được đăng nhập.')
-      reset()
-      setSelectedProvinceCode('')
-      setWards([])
-    } catch (error) {
-      setError('root.server', {
-        type: 'server',
-        message: getErrorMessage(error),
-      })
-    }
-  }
 
   return (
     <main className="auth-page">
@@ -279,14 +138,7 @@ function RegisterPage() {
                         onValueChange={(value) => {
                           const nextProvinceCode = value ?? ''
                           field.onChange(nextProvinceCode)
-                          setSelectedProvinceCode(nextProvinceCode)
-                          setValue('wardCode', '', {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          })
-                          setWards([])
-                          setWardError('')
-                          setWardRetryCount(0)
+                          handleProvinceChange(nextProvinceCode)
                         }}
                         required
                         value={field.value || null}
@@ -329,9 +181,7 @@ function RegisterPage() {
                                 {provinceError}{' '}
                                 <Button
                                   className="h-auto p-0"
-                                  onClick={() =>
-                                    setProvinceRetryCount((count) => count + 1)
-                                  }
+                                  onClick={retryProvinces}
                                   size="sm"
                                   type="button"
                                   variant="link"
@@ -407,9 +257,7 @@ function RegisterPage() {
                                 {wardError}{' '}
                                 <Button
                                   className="h-auto p-0"
-                                  onClick={() =>
-                                    setWardRetryCount((count) => count + 1)
-                                  }
+                                  onClick={retryWards}
                                   size="sm"
                                   type="button"
                                   variant="link"

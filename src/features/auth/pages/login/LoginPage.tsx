@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
-import { z } from 'zod'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -19,14 +18,8 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
+import { loginSchema, type LoginForm } from '@/features/auth/auth.schema'
 import '../auth-page.css'
-
-const loginSchema = z.object({
-  email: z.string().trim().email('Email không hợp lệ'),
-  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
-})
-
-type LoginForm = z.infer<typeof loginSchema>
 
 function LoginPage() {
   const [message, setMessage] = useState('')
