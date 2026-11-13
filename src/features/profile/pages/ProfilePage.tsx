@@ -13,7 +13,6 @@ import {
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, Navigate, useNavigate } from "react-router"
-import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -31,45 +30,15 @@ import {
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/AuthContext"
 import type { UserAddress } from "@/features/auth/auth.schema"
+import {
+  addressSchema,
+  passwordSchema,
+  profileSchema,
+  type AddressForm,
+  type PasswordForm,
+  type ProfileForm,
+} from "@/features/profile/profile.schema"
 import "./profile-page.css"
-
-const profileSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(2, "Họ tên phải có ít nhất 2 ký tự")
-    .max(100, "Họ tên quá dài"),
-  phone: z
-    .string()
-    .trim()
-    .transform((value) => value.replace(/[\s-]/g, ""))
-    .pipe(
-      z.string().regex(/^(0\d{9}|\+84\d{9})$/, "Số điện thoại không hợp lệ"),
-    ),
-})
-
-const addressSchema = z.object({
-  label: z.string().trim().min(2, "Vui lòng nhập tên địa chỉ").max(50),
-  street: z.string().trim().min(5, "Vui lòng nhập địa chỉ cụ thể").max(255),
-})
-
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Vui lòng nhập mật khẩu hiện tại"),
-    newPassword: z
-      .string()
-      .min(8, "Mật khẩu mới cần ít nhất 8 ký tự")
-      .max(64, "Mật khẩu không được vượt quá 64 ký tự"),
-    confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu mới"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
-    path: ["confirmPassword"],
-  })
-
-type ProfileForm = z.infer<typeof profileSchema>
-type AddressForm = z.infer<typeof addressSchema>
-type PasswordForm = z.infer<typeof passwordSchema>
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định."
