@@ -1,8 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { useNavigate } from "react-router"
 import { useAuth } from "@/context/AuthContext"
 import {
+  loginSchema,
+  type LoginForm,
   registerSchema,
   type RegisterInput,
 } from "@/features/auth/auth.schema"
@@ -12,6 +15,33 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "Đã xảy ra lỗi không xác định."
+}
+
+export function useLoginActions() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const [message, setMessage] = useState("")
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+    mode: "onTouched",
+  })
+
+  async function handleLogin(data: LoginForm) {
+    setMessage("")
+    try {
+      await login(data)
+      navigate("/profile", { replace: true })
+    } catch (error) {
+      setMessage(getErrorMessage(error))
+    }
+  }
+
+  function handleForgotPassword() {
+    setMessage("Chức năng khôi phục mật khẩu chưa được kết nối.")
+  }
+
+  return { form, message, handleLogin, handleForgotPassword }
 }
 
 export function useRegisterActions() {

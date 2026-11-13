@@ -1,7 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -17,33 +14,12 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/context/AuthContext'
-import { loginSchema, type LoginForm } from '@/features/auth/auth.schema'
+import { useLoginActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
 function LoginPage() {
-  const [message, setMessage] = useState('')
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-    mode: 'onTouched',
-  })
-
-  async function handleLogin(data: LoginForm) {
-    setMessage('')
-    try {
-      await login(data)
-      navigate('/profile', { replace: true })
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Đã xảy ra lỗi không xác định.',
-      )
-    }
-  }
+  const { form, message, handleLogin, handleForgotPassword } =
+    useLoginActions()
 
   return (
     <main className="auth-page">
@@ -83,9 +59,7 @@ function LoginPage() {
                     <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                     <Button
                       className="h-auto p-0 text-muted-foreground"
-                      onClick={() =>
-                        setMessage('Chức năng khôi phục mật khẩu chưa được kết nối.')
-                      }
+                      onClick={handleForgotPassword}
                       size="sm"
                       type="button"
                       variant="link"

@@ -1,7 +1,12 @@
 import { z } from "zod"
 
 export const loginSchema = z.object({
-  email: z.string().trim().email("Email không hợp lệ"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(1, "Vui lòng nhập email")
+    .pipe(z.email({ error: "Email không hợp lệ" })),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 })
 
@@ -29,7 +34,7 @@ export const registerSchema = z
       .toLowerCase()
       .min(1, "Vui lòng nhập email")
       .max(254, "Email quá dài")
-      .email("Email không hợp lệ"),
+      .pipe(z.email({ error: "Email không hợp lệ" })),
     password: z
       .string()
       .min(8, "Mật khẩu tối thiểu 8 ký tự")

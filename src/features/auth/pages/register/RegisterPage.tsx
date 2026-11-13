@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useRegisterActions } from '@/features/auth/hooks/useRegisterActions'
+import { useRegisterActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
 function RegisterPage() {
