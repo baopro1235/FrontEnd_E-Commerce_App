@@ -1,0 +1,49 @@
+#root:has(.profile-page) {
+  width: 100%;
+  max-width: none;
+  border: 0;
+  text-align: left;
+}
+
+.profile-page {
+  min-height: 100svh;
+  background:
+    radial-gradient(ellipse at 8% 0%, color-mix(in oklch, var(--primary) 6%, transparent), transparent 35%),
+    var(--background);
+}
+
+.profile-title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.profile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.profile-nav-link:hover,
+.profile-nav-link:focus-visible {
+  background: var(--muted);
+  color: var(--foreground);
+  outline: none;
+}
+
+.profile-nav-link svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
