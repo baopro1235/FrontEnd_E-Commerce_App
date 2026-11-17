@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select"
 import type { UserAddress } from "@/features/auth/auth.schema"
 import type { AddressForm } from "@/features/profile/profile.schema"
+import { cn } from "@/lib/utils"
 
 interface ShippingAddressSectionProps {
   addresses: UserAddress[]
@@ -313,7 +314,10 @@ function ShippingAddressSection({
           <ul className="flex flex-col gap-3">
             {addresses.map((address) => (
               <li
-                className="flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between"
+                className={cn(
+                  "flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between",
+                  address.isDefault && "border-success/40 bg-success/5",
+                )}
                 key={address.id}
               >
                 <div className="flex min-w-0 items-start gap-3">
@@ -323,11 +327,17 @@ function ShippingAddressSection({
                   />
                   <div className="flex min-w-0 flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">
+                      <p
+                        className={cn(
+                          "font-medium text-foreground",
+                          address.isDefault && "text-success",
+                        )}
+                      >
                         {address.label}
                       </p>
                       {address.isDefault && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                          <Check aria-hidden="true" className="size-3" />
                           Mặc định
                         </span>
                       )}

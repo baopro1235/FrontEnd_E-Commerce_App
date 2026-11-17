@@ -11,7 +11,7 @@
   --bg: #fff;
   --border: oklch(0.922 0 0);
   --password-weak: oklch(67.207% 0.21562 22.564);
-  --password-medium: oklch(81.495% 0.16993 77.8);
+  --password-medium: oklch(72.48% 0.14793 90.807);
   --success: oklch(0.5 0.14 145);
   --password-strong: var(--success);
   --code-bg: #f4f3ec;

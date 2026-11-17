@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form"
+import { ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SuccessMessage from "@/components/SuccessMessage"
 import {
@@ -38,7 +39,8 @@ function SecuritySection({
     <Card id="security" className="scroll-mt-6">
       <CardHeader>
         <CardTitle>Bảo mật</CardTitle>
-        <CardDescription>
+        <CardDescription className="flex items-center gap-2 rounded-md border border-password-medium/40 bg-password-medium/10 px-3 py-2 font-medium text-password-medium">
+          <ShieldAlert aria-hidden="true" className="size-4 shrink-0" />
           Dùng mật khẩu mạnh và không chia sẻ mật khẩu với người khác.
         </CardDescription>
       </CardHeader>
