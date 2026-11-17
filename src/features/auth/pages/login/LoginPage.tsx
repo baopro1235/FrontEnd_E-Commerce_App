@@ -25,8 +25,7 @@ function LoginPage() {
   const requiresLogin =
     (location.state as { requiresLogin?: boolean } | null)?.requiresLogin ===
     true
-  const { form, message, handleLogin, handleForgotPassword } =
-    useLoginActions()
+  const { form, message, handleLogin } = useLoginActions()
 
   useEffect(() => {
     if (logoutPending) clearLogoutPending()
@@ -76,15 +75,12 @@ function LoginPage() {
                 <Field data-invalid={!!form.formState.errors.password}>
                   <div className="flex items-center justify-between gap-3">
                     <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
-                    <Button
+                    <Link
                       className="h-auto p-0 text-muted-foreground"
-                      onClick={handleForgotPassword}
-                      size="sm"
-                      type="button"
-                      variant="link"
+                      to="/forgot-password"
                     >
                       Quên mật khẩu?
-                    </Button>
+                    </Link>
                   </div>
                   <Input
                     autoComplete="current-password"

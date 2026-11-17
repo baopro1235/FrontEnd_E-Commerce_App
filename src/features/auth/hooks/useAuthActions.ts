@@ -37,11 +37,7 @@ export function useLoginActions() {
     }
   }
 
-  function handleForgotPassword() {
-    setMessage("Chức năng khôi phục mật khẩu chưa được kết nối.")
-  }
-
-  return { form, message, handleLogin, handleForgotPassword }
+  return { form, message, handleLogin }
 }
 
 export function useRegisterActions() {
