@@ -2,6 +2,7 @@ import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import SuccessMessage from "@/components/SuccessMessage"
+import AddressCombobox from "@/components/AddressCombobox"
 import {
   Card,
   CardContent,
@@ -17,14 +18,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { UserAddress } from "@/features/auth/auth.schema"
 import type { AddressForm } from "@/features/profile/profile.schema"
 import { cn } from "@/lib/utils"
@@ -147,43 +140,22 @@ function ShippingAddressSection({
                     <FieldLabel htmlFor="address-province">
                       Tỉnh / Thành phố
                     </FieldLabel>
-                    <Select
-                      items={provinces.map((province) => ({
-                        label: province.name,
-                        value: String(province.code),
-                      }))}
-                      name={field.name}
-                      onValueChange={(value) => {
-                        const nextProvinceCode = value ?? ""
+                    <AddressCombobox
+                      describedBy="address-province-status"
+                      disabled={isLoadingProvinces || !!provinceError}
+                      emptyMessage="Không tìm thấy tỉnh/thành phố."
+                      id="address-province"
+                      inputRef={field.ref}
+                      invalid={!!errors.provinceCode}
+                      onBlur={field.onBlur}
+                      onValueChange={(nextProvinceCode) => {
                         field.onChange(nextProvinceCode)
                         onProvinceChange(nextProvinceCode)
                       }}
-                      value={field.value || null}
-                    >
-                      <SelectTrigger
-                        aria-describedby="address-province-status"
-                        aria-invalid={!!errors.provinceCode}
-                        className="w-full"
-                        disabled={isLoadingProvinces || !!provinceError}
-                        id="address-province"
-                        onBlur={field.onBlur}
-                        ref={field.ref}
-                      >
-                        <SelectValue placeholder="Chọn tỉnh / thành phố" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {provinces.map((province) => (
-                            <SelectItem
-                              key={province.code}
-                              value={String(province.code)}
-                            >
-                              {province.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      options={provinces}
+                      placeholder="Tìm hoặc chọn tỉnh / thành phố"
+                      value={field.value}
+                    />
                     <FieldDescription
                       aria-live="polite"
                       className={provinceError ? "text-destructive" : undefined}
@@ -216,49 +188,27 @@ function ShippingAddressSection({
                 render={({ field }) => (
                   <Field data-invalid={!!errors.wardCode}>
                     <FieldLabel htmlFor="address-ward">Phường / Xã</FieldLabel>
-                    <Select
-                      items={wards.map((ward) => ({
-                        label: ward.name,
-                        value: String(ward.code),
-                      }))}
-                      name={field.name}
-                      onValueChange={(value) => field.onChange(value ?? "")}
-                      value={field.value || null}
-                    >
-                      <SelectTrigger
-                        aria-describedby="address-ward-status"
-                        aria-invalid={!!errors.wardCode}
-                        className="w-full"
-                        disabled={
-                          !selectedProvinceCode ||
-                          isLoadingWards ||
-                          !!wardError
-                        }
-                        id="address-ward"
-                        onBlur={field.onBlur}
-                        ref={field.ref}
-                      >
-                        <SelectValue
-                          placeholder={
-                            !selectedProvinceCode
-                              ? "Chọn tỉnh/thành phố trước"
-                              : "Chọn phường / xã"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {wards.map((ward) => (
-                            <SelectItem
-                              key={ward.code}
-                              value={String(ward.code)}
-                            >
-                              {ward.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <AddressCombobox
+                      describedBy="address-ward-status"
+                      disabled={
+                        !selectedProvinceCode ||
+                        isLoadingWards ||
+                        !!wardError
+                      }
+                      emptyMessage="Không tìm thấy phường/xã."
+                      id="address-ward"
+                      inputRef={field.ref}
+                      invalid={!!errors.wardCode}
+                      onBlur={field.onBlur}
+                      onValueChange={(value) => field.onChange(value)}
+                      options={wards}
+                      placeholder={
+                        !selectedProvinceCode
+                          ? "Chọn tỉnh/thành phố trước"
+                          : "Tìm hoặc chọn phường / xã"
+                      }
+                      value={field.value}
+                    />
                     <FieldDescription
                       aria-live="polite"
                       className={wardError ? "text-destructive" : undefined}
