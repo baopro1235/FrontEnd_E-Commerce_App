@@ -2,6 +2,7 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useState,
   type ReactNode,
 } from "react";
@@ -21,6 +22,8 @@ interface LoginInput {
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  logoutPending: boolean;
+  clearLogoutPending: () => void;
   loading: boolean;
   login: (credentials: LoginInput) => Promise<void>;
   register: (data: RegisterAccountInput) => Promise<void>;
@@ -60,6 +63,8 @@ function restoreUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(restoreUser);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const clearLogoutPending = useCallback(() => setLogoutPending(false), []);
 
   const login = async (credentials: LoginInput) => {
     const { token, user: userData } = await mockApi.login(credentials);
@@ -67,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("auth_user", JSON.stringify(userData));
 
+    setLogoutPending(false);
     setUser(userData);
   };
 
@@ -76,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("auth_user", JSON.stringify(userData));
 
+    setLogoutPending(false);
     setUser(userData);
   };
 
@@ -83,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
 
+    setLogoutPending(true);
     setUser(null);
   };
 
@@ -141,6 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        logoutPending,
+        clearLogoutPending,
         loading: false,
         login,
         register,

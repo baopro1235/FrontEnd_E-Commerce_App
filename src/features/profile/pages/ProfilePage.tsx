@@ -49,8 +49,8 @@ function ProfilePage() {
   }
 
   function signOut() {
+    navigate("/login", { replace: true, state: null, flushSync: true })
     logout()
-    navigate("/login", { replace: true })
   }
 
   return (

@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -14,12 +15,22 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/context/AuthContext'
 import { useLoginActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
 function LoginPage() {
+  const location = useLocation()
+  const { logoutPending, clearLogoutPending } = useAuth()
+  const requiresLogin =
+    (location.state as { requiresLogin?: boolean } | null)?.requiresLogin ===
+    true
   const { form, message, handleLogin, handleForgotPassword } =
     useLoginActions()
+
+  useEffect(() => {
+    if (logoutPending) clearLogoutPending()
+  }, [clearLogoutPending, logoutPending])
 
   return (
     <main className="auth-page">
@@ -35,6 +46,14 @@ function LoginPage() {
           </CardHeader>
 
           <CardContent>
+            {requiresLogin && (
+              <p
+                className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+                role="alert"
+              >
+                Vui lòng đăng nhập để truy cập trang này.
+              </p>
+            )}
             <form
               className="flex flex-col gap-5"
               onSubmit={form.handleSubmit(handleLogin)}
