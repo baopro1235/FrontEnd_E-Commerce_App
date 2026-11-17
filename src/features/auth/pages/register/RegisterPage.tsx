@@ -15,6 +15,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import PasswordStrength from '@/components/PasswordStrength'
 import {
   Select,
   SelectContent,
@@ -48,6 +49,7 @@ function RegisterPage() {
     handleSubmit,
     register,
   } = form
+  const password = form.watch('password') ?? ''
 
   return (
     <main className="auth-page">
@@ -308,6 +310,7 @@ function RegisterPage() {
                     {...register('password')}
                   />
                   <FieldError>{errors.password?.message}</FieldError>
+                  <PasswordStrength password={password} />
                 </Field>
 
                 <Field data-invalid={!!errors.confirmPassword}>

@@ -14,6 +14,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import PasswordStrength from "@/components/PasswordStrength"
 import type { PasswordForm } from "@/features/profile/profile.schema"
 
 interface SecuritySectionProps {
@@ -30,6 +31,7 @@ function SecuritySection({
   onSave,
 }: SecuritySectionProps) {
   const { errors, isSubmitting } = form.formState
+  const newPassword = form.watch("newPassword") ?? ""
 
   return (
     <Card id="security" className="scroll-mt-6">
@@ -72,6 +74,7 @@ function SecuritySection({
                 {...form.register("newPassword")}
               />
               <FieldError>{errors.newPassword?.message}</FieldError>
+              <PasswordStrength password={newPassword} />
             </Field>
             <Field data-invalid={!!errors.confirmPassword}>
               <FieldLabel htmlFor="confirm-new-password">
