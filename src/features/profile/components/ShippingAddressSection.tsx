@@ -1,6 +1,7 @@
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
+import SuccessMessage from "@/components/SuccessMessage"
 import {
   Card,
   CardContent,
@@ -101,9 +102,7 @@ function ShippingAddressSection({
           </p>
         )}
         {message && (
-          <p aria-live="polite" className="text-sm text-primary">
-            {message}
-          </p>
+          <SuccessMessage message={message} />
         )}
 
         {isFormOpen && (

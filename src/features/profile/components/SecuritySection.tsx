@@ -1,5 +1,6 @@
 import type { UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
+import SuccessMessage from "@/components/SuccessMessage"
 import {
   Card,
   CardContent,
@@ -96,9 +97,7 @@ function SecuritySection({
             </p>
           )}
           {message && (
-            <p aria-live="polite" className="text-sm text-primary">
-              {message}
-            </p>
+            <SuccessMessage message={message} />
           )}
           <div className="flex justify-end">
             <Button disabled={isSubmitting} type="submit">
