@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useState, type SubmitEvent } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router"
 import { useAuth } from "@/context/AuthContext"
@@ -69,7 +69,7 @@ export function useForgotPasswordActions() {
     return () => window.clearTimeout(timeoutId)
   }, [resendCountdown, step])
 
-  async function handleRequestCode(event: FormEvent<HTMLFormElement>) {
+  async function handleRequestCode(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setApiError("")
     setIsSubmitting(true)
@@ -86,7 +86,7 @@ export function useForgotPasswordActions() {
     }
   }
 
-  async function handleVerifyCode(event: FormEvent<HTMLFormElement>) {
+  async function handleVerifyCode(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setApiError("")
     setIsSubmitting(true)
@@ -116,7 +116,7 @@ export function useForgotPasswordActions() {
     }
   }
 
-  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+  async function handleResetPassword(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setApiError("")
     if (password !== confirmPassword) {
