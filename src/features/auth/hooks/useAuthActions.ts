@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router"
 import { useAuth } from "@/context/AuthContext"
@@ -38,6 +38,127 @@ export function useLoginActions() {
   }
 
   return { form, message, handleLogin }
+}
+
+export function useForgotPasswordActions() {
+  const {
+    requestPasswordReset,
+    verifyPasswordResetCode,
+    resetPassword,
+  } = useAuth()
+  const [step, setStep] = useState(1)
+  const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [demoCode, setDemoCode] = useState("")
+  const [resetToken, setResetToken] = useState("")
+  const [resendCountdown, setResendCountdown] = useState(30)
+  const [resendMessage, setResendMessage] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [apiError, setApiError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (step !== 2 || resendCountdown === 0) return
+
+    const timeoutId = window.setTimeout(
+      () => setResendCountdown((seconds) => seconds - 1),
+      1000,
+    )
+    return () => window.clearTimeout(timeoutId)
+  }, [resendCountdown, step])
+
+  async function handleRequestCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    setIsSubmitting(true)
+    try {
+      setDemoCode(await requestPasswordReset(email))
+      setOtp("")
+      setResendCountdown(30)
+      setResendMessage("")
+      setStep(2)
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleVerifyCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    setIsSubmitting(true)
+    try {
+      setResetToken(await verifyPasswordResetCode(email, otp))
+      setStep(3)
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleResendCode() {
+    setApiError("")
+    setResendMessage("")
+    setIsSubmitting(true)
+    try {
+      setDemoCode(await requestPasswordReset(email))
+      setOtp("")
+      setResendCountdown(30)
+      setResendMessage("Mã OTP demo mới đã được tạo.")
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    if (password !== confirmPassword) {
+      setPasswordError("Mật khẩu xác nhận không khớp.")
+      return
+    }
+
+    setPasswordError("")
+    setIsSubmitting(true)
+    try {
+      await resetPassword(email, resetToken, password)
+      setStep(4)
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return {
+    step,
+    email,
+    setEmail,
+    otp,
+    setOtp,
+    demoCode,
+    resendCountdown,
+    resendMessage,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    passwordError,
+    setPasswordError,
+    apiError,
+    isSubmitting,
+    goBack: () => setStep((currentStep) => currentStep - 1),
+    handleRequestCode,
+    handleVerifyCode,
+    handleResendCode,
+    handleResetPassword,
+  }
 }
 
 export function useRegisterActions() {

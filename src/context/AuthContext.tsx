@@ -12,7 +12,7 @@ import type {
   RegisterAccountInput,
   UserAddressInput,
 } from "../features/auth/auth.schema";
-import { mockApi } from "../mocks/mockApis";
+import { mockApi } from "../mocks/userAPI";
 
 interface LoginInput {
   email: string;
@@ -39,6 +39,13 @@ interface AuthContextType {
   removeAddress: (addressId: string) => Promise<void>;
   setDefaultAddress: (addressId: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<string>;
+  verifyPasswordResetCode: (email: string, code: string) => Promise<string>;
+  resetPassword: (
+    email: string,
+    resetToken: string,
+    newPassword: string,
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -144,6 +151,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await mockApi.changePassword(user.id, { currentPassword, newPassword });
   };
 
+  const requestPasswordReset = async (email: string) => {
+    const { demoCode } = await mockApi.requestPasswordReset(email);
+    return demoCode;
+  };
+
+  const verifyPasswordResetCode = (email: string, code: string) =>
+    mockApi.verifyPasswordResetCode(email, code);
+
+  const resetPassword = (
+    email: string,
+    resetToken: string,
+    newPassword: string,
+  ) => mockApi.resetPassword(email, resetToken, newPassword);
+
   return (
     <AuthContext.Provider
       value={{
@@ -161,6 +182,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         removeAddress,
         setDefaultAddress,
         changePassword,
+        requestPasswordReset,
+        verifyPasswordResetCode,
+        resetPassword,
       }}
     >
       {children}

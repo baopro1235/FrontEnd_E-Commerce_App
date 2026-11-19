@@ -27,6 +27,16 @@ interface PasswordUpdate {
   newPassword: string
 }
 
+interface PasswordResetChallenge {
+  code: string
+  expiresAt: number
+  resendAt: number
+  failedAttempts: number
+  resetToken?: string
+}
+
+const passwordResetChallenges = new Map<string, PasswordResetChallenge>()
+
 function initDB() {
   if (!localStorage.getItem(DB_KEY)) {
     const defaultUsers: StoredUser[] = [
@@ -76,6 +86,12 @@ function toAuthUser(user: StoredUser): AuthUser {
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
+function generateToken() {
+  const values = new Uint32Array(2)
+  crypto.getRandomValues(values)
+  return Array.from(values, (value) => value.toString(36)).join("")
 }
 
 export const mockApi = {
@@ -261,5 +277,94 @@ export const mockApi = {
     user.password = newPassword
     saveUsers(users)
     return { message: "Đổi mật khẩu thành công" }
+  },
+
+  async requestPasswordReset(email: string): Promise<{ demoCode: string }> {
+    await wait(DELAY)
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!getUsers().some((user) => user.email.toLowerCase() === normalizedEmail)) {
+      throw new Error("Không tìm thấy tài khoản với email này.")
+    }
+
+    const now = Date.now()
+    const existingChallenge = passwordResetChallenges.get(normalizedEmail)
+    if (existingChallenge && now < existingChallenge.resendAt) {
+      const seconds = Math.ceil((existingChallenge.resendAt - now) / 1000)
+      throw new Error(`Vui lòng đợi ${seconds} giây trước khi gửi lại mã.`)
+    }
+
+    const values = new Uint32Array(1)
+    crypto.getRandomValues(values)
+    const code = String(values[0] % 1_000_000).padStart(6, "0")
+    passwordResetChallenges.set(normalizedEmail, {
+      code,
+      expiresAt: now + 10 * 60 * 1000,
+      resendAt: now + 30 * 1000,
+      failedAttempts: 0,
+    })
+    return { demoCode: code }
+  },
+
+  async verifyPasswordResetCode(email: string, code: string): Promise<string> {
+    await wait(DELAY)
+    const normalizedEmail = email.trim().toLowerCase()
+    const challenge = passwordResetChallenges.get(normalizedEmail)
+    if (!challenge || Date.now() >= challenge.expiresAt) {
+      passwordResetChallenges.delete(normalizedEmail)
+      throw new Error("Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.")
+    }
+
+    if (challenge.failedAttempts >= 5) {
+      passwordResetChallenges.delete(normalizedEmail)
+      throw new Error("Bạn đã nhập sai mã quá nhiều lần. Vui lòng yêu cầu mã mới.")
+    }
+
+    if (challenge.code !== code) {
+      challenge.failedAttempts += 1
+      if (challenge.failedAttempts >= 5) {
+        passwordResetChallenges.delete(normalizedEmail)
+        throw new Error("Bạn đã nhập sai mã quá nhiều lần. Vui lòng yêu cầu mã mới.")
+      }
+      throw new Error("Mã OTP không chính xác.")
+    }
+
+    challenge.resetToken = generateToken()
+    return challenge.resetToken
+  },
+
+  async resetPassword(
+    email: string,
+    resetToken: string,
+    newPassword: string,
+  ): Promise<void> {
+    await wait(DELAY)
+    if (newPassword.length < 8 || newPassword.length > 64) {
+      throw new Error("Mật khẩu phải có từ 8 đến 64 ký tự.")
+    }
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const challenge = passwordResetChallenges.get(normalizedEmail)
+    if (
+      !challenge ||
+      Date.now() >= challenge.expiresAt ||
+      !challenge.resetToken ||
+      challenge.resetToken !== resetToken
+    ) {
+      passwordResetChallenges.delete(normalizedEmail)
+      throw new Error("Phiên đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.")
+    }
+
+    const users = getUsers()
+    const user = users.find(
+      (candidate) => candidate.email.toLowerCase() === normalizedEmail,
+    )
+    if (!user) {
+      passwordResetChallenges.delete(normalizedEmail)
+      throw new Error("Không tìm thấy tài khoản với email này.")
+    }
+
+    user.password = newPassword
+    saveUsers(users)
+    passwordResetChallenges.delete(normalizedEmail)
   },
 }

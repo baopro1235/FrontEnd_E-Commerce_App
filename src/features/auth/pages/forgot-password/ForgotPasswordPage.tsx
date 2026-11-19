@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, Mail, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router'
 import PasswordStrength from '@/components/PasswordStrength'
@@ -18,28 +17,35 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useForgotPasswordActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
 const steps = ['Email', 'Mã OTP', 'Mật khẩu mới', 'Hoàn tất']
 
 function ForgotPasswordPage() {
-  const [step, setStep] = useState(1)
-  const [email, setEmail] = useState('')
-  const [resendCountdown, setResendCountdown] = useState(30)
-  const [resendMessage, setResendMessage] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-
-  useEffect(() => {
-    if (step !== 2 || resendCountdown === 0) return
-
-    const timeoutId = window.setTimeout(
-      () => setResendCountdown((seconds) => seconds - 1),
-      1000,
-    )
-    return () => window.clearTimeout(timeoutId)
-  }, [resendCountdown, step])
+  const {
+    step,
+    email,
+    setEmail,
+    otp,
+    setOtp,
+    demoCode,
+    resendCountdown,
+    resendMessage,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    passwordError,
+    setPasswordError,
+    apiError,
+    isSubmitting,
+    goBack,
+    handleRequestCode,
+    handleVerifyCode,
+    handleResendCode,
+    handleResetPassword,
+  } = useForgotPasswordActions()
 
   return (
     <main className="auth-page">
@@ -104,10 +110,10 @@ function ForgotPasswordPage() {
               {step === 1
                 ? 'Nhập email đã đăng ký để bắt đầu khôi phục mật khẩu.'
                 : step === 2
-                  ? `Nhập mã OTP gồm 6 chữ số đã được gửi đến ${email}.`
+                  ? `Nhập mã OTP demo gồm 6 chữ số cho ${email}.`
                   : step === 3
                     ? 'Tạo mật khẩu mới cho tài khoản của bạn.'
-                    : 'Bạn đã hoàn thành các bước trên giao diện khôi phục mật khẩu.'}
+                    : 'Mật khẩu của bạn đã được đặt lại thành công.'}
             </CardDescription>
           </CardHeader>
 
@@ -115,12 +121,7 @@ function ForgotPasswordPage() {
             {step === 1 && (
               <form
                 className="flex flex-col gap-5"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  setResendCountdown(30)
-                  setResendMessage('')
-                  setStep(2)
-                }}
+                onSubmit={handleRequestCode}
               >
                 <FieldGroup>
                   <Field>
@@ -140,20 +141,22 @@ function ForgotPasswordPage() {
                     </FieldDescription>
                   </Field>
                 </FieldGroup>
-                <Button className="h-11 w-full" type="submit">
-                  Tiếp tục
+                <Button className="h-11 w-full" disabled={isSubmitting} type="submit">
+                  {isSubmitting ? 'Đang gửi mã...' : 'Tiếp tục'}
                   <Mail aria-hidden="true" />
                 </Button>
+                {apiError && (
+                  <p aria-live="polite" className="text-sm text-destructive" role="alert">
+                    {apiError}
+                  </p>
+                )}
               </form>
             )}
 
             {step === 2 && (
               <form
                 className="flex flex-col gap-5"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  setStep(3)
-                }}
+                onSubmit={handleVerifyCode}
               >
                 <FieldGroup>
                   <Field>
@@ -164,14 +167,19 @@ function ForgotPasswordPage() {
                       id="otp"
                       inputMode="numeric"
                       maxLength={6}
+                      onChange={(event) => setOtp(event.target.value)}
                       pattern="[0-9]{6}"
                       placeholder="••••••"
                       required
                       title="Vui lòng nhập mã OTP gồm 6 chữ số."
                       type="text"
+                      value={otp}
                     />
                     <FieldDescription>
                       Nhập mã gồm 6 chữ số để tiếp tục.
+                    </FieldDescription>
+                    <FieldDescription>
+                      Mã OTP demo: <strong>{demoCode}</strong> (không gửi email)
                     </FieldDescription>
                   </Field>
                   <p
@@ -184,19 +192,19 @@ function ForgotPasswordPage() {
                         : '')}
                   </p>
                 </FieldGroup>
-                <Button className="h-11 w-full" type="submit">
-                  Xác nhận
+                {apiError && (
+                  <p aria-live="polite" className="text-sm text-destructive" role="alert">
+                    {apiError}
+                  </p>
+                )}
+                <Button className="h-11 w-full" disabled={isSubmitting} type="submit">
+                  {isSubmitting ? 'Đang xác minh...' : 'Xác nhận'}
                   <ShieldCheck aria-hidden="true" />
                 </Button>
                 <Button
                   className="w-full"
-                  disabled={resendCountdown > 0}
-                  onClick={() => {
-                    setResendCountdown(30)
-                    setResendMessage(
-                      'Tính năng gửi lại mã sẽ được kết nối sau.',
-                    )
-                  }}
+                  disabled={resendCountdown > 0 || isSubmitting}
+                  onClick={handleResendCode}
                   type="button"
                   variant="outline"
                 >
@@ -210,15 +218,7 @@ function ForgotPasswordPage() {
             {step === 3 && (
               <form
                 className="flex flex-col gap-5"
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  if (password !== confirmPassword) {
-                    setPasswordError('Mật khẩu xác nhận không khớp.')
-                    return
-                  }
-                  setPasswordError('')
-                  setStep(4)
-                }}
+                onSubmit={handleResetPassword}
               >
                 <FieldGroup>
                   <Field>
@@ -257,8 +257,13 @@ function ForgotPasswordPage() {
                     <FieldError>{passwordError}</FieldError>
                   </Field>
                 </FieldGroup>
-                <Button className="h-11 w-full" type="submit">
-                  Đặt lại mật khẩu
+                {apiError && (
+                  <p aria-live="polite" className="text-sm text-destructive" role="alert">
+                    {apiError}
+                  </p>
+                )}
+                <Button className="h-11 w-full" disabled={isSubmitting} type="submit">
+                  {isSubmitting ? 'Đang cập nhật...' : 'Đặt lại mật khẩu'}
                   <ShieldCheck aria-hidden="true" />
                 </Button>
               </form>
@@ -270,8 +275,7 @@ function ForgotPasswordPage() {
                   <Check aria-hidden="true" className="size-7" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Giao diện khôi phục đã hoàn tất. Việc gửi OTP và lưu mật khẩu
-                  mới sẽ được kết nối sau.
+                  Mật khẩu đã được cập nhật trong API giả lập của ứng dụng.
                 </p>
                 <Link
                   className={buttonVariants({ className: 'h-11 w-full' })}
@@ -288,7 +292,8 @@ function ForgotPasswordPage() {
               {step === 2 || step === 3 ? (
                 <Button
                   className="h-auto p-0 text-muted-foreground"
-                  onClick={() => setStep(step - 1)}
+                  disabled={isSubmitting}
+                  onClick={goBack}
                   variant="link"
                 >
                   <ArrowLeft aria-hidden="true" />
