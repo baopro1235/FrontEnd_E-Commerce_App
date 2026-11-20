@@ -1,0 +1,71 @@
+
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Sơn nội thất cao cấp",
+      "slug": "son-noi-that-cao-cap",
+      "description": "Sơn nội thất chất lượng cao.",
+      "price": 850000,
+      "originalPrice": 950000,
+      "image": "/images/interior-paint.jpg",
+      "brand": "Dulux",
+      "category": "Sơn nội thất",
+      "paintType": "Sơn nước",
+      "capacity": "5L",
+      "stock": 50,
+      "isFeatured": true,
+      "isActive": true
+    },
+    {
+      "id": "2",
+      "name": "Sơn ngoại thất chống thấm",
+      "slug": "son-ngoai-that-chong-tham",
+      "description": "Sơn ngoại thất bảo vệ công trình.",
+      "price": 1200000,
+      "image": "/images/exterior-paint.jpg",
+      "brand": "Jotun",
+      "category": "Sơn ngoại thất",
+      "paintType": "Sơn nước",
+      "capacity": "5L",
+      "stock": 30,
+      "isFeatured": true,
+      "isActive": true
+    },
+    {
+      "id": "3",
+      "name": "Sơn lót kháng kiềm",
+      "slug": "son-lot-khang-kiem",
+      "description": "Sơn lót tăng độ bám dính.",
+      "price": 650000,
+      "image": "/images/primer-paint.jpg",
+      "brand": "Nippon",
+      "category": "Sơn lót",
+      "paintType": "Sơn nước",
+      "capacity": "5L",
+      "stock": 40,
+      "isFeatured": false,
+      "isActive": true
+    },
+    {
+      "id": "4",
+      "name": "Sơn chống rỉ kim loại",
+      "slug": "son-chong-ri-kim-loai",
+      "description": "Sơn bảo vệ bề mặt kim loại.",
+      "price": 350000,
+      "image": "/images/anti-rust-paint.jpg",
+      "brand": "Kova",
+      "category": "Sơn chuyên dụng",
+      "paintType": "Sơn dầu",
+      "capacity": "1L",
+      "stock": 25,
+      "isFeatured": true,
+      "isActive": true
+    }
+  ],
+  "categories": [],
+  "users": [],
+  "carts": [],
+  "orders": [],
+  "addresses": []
+}

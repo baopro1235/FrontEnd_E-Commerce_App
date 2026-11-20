@@ -1,7 +1,7 @@
 
 import { products } from "../../data/products.ts";
 import ProductCard from "./ProductCard";
-import "./FeaturedProducts.css";
+import "./FeatureProducts.css";
 
 function FeaturedProducts() {
     const featuredProducts = products.filter(
