@@ -49,8 +49,8 @@ function ProfilePage() {
   }
 
   function signOut() {
+    navigate("/login", { replace: true, state: null, flushSync: true })
     logout()
-    navigate("/login", { replace: true })
   }
 
   return (
@@ -62,7 +62,7 @@ function ProfilePage() {
               className="flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
               to="/"
             >
-              Paintmart <ChevronRight aria-hidden="true" /> Tài khoản
+              Paint Shop <ChevronRight aria-hidden="true" /> Tài khoản
             </Link>
             <h1 className="profile-title">Hồ sơ của tôi</h1>
             <p className="text-sm text-muted-foreground">

@@ -2,6 +2,7 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useState,
   type ReactNode,
 } from "react";
@@ -11,7 +12,7 @@ import type {
   RegisterAccountInput,
   UserAddressInput,
 } from "../features/auth/auth.schema";
-import { mockApi } from "../mocks/mockApis";
+import { mockApi } from "../services/userService";
 
 interface LoginInput {
   email: string;
@@ -21,6 +22,8 @@ interface LoginInput {
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  logoutPending: boolean;
+  clearLogoutPending: () => void;
   loading: boolean;
   login: (credentials: LoginInput) => Promise<void>;
   register: (data: RegisterAccountInput) => Promise<void>;
@@ -36,6 +39,13 @@ interface AuthContextType {
   removeAddress: (addressId: string) => Promise<void>;
   setDefaultAddress: (addressId: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<string>;
+  verifyPasswordResetCode: (email: string, code: string) => Promise<string>;
+  resetPassword: (
+    email: string,
+    resetToken: string,
+    newPassword: string,
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -60,6 +70,8 @@ function restoreUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(restoreUser);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const clearLogoutPending = useCallback(() => setLogoutPending(false), []);
 
   const login = async (credentials: LoginInput) => {
     const { token, user: userData } = await mockApi.login(credentials);
@@ -67,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("auth_user", JSON.stringify(userData));
 
+    setLogoutPending(false);
     setUser(userData);
   };
 
@@ -76,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("auth_user", JSON.stringify(userData));
 
+    setLogoutPending(false);
     setUser(userData);
   };
 
@@ -83,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
 
+    setLogoutPending(true);
     setUser(null);
   };
 
@@ -90,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updatedFields: Partial<Pick<AuthUser, "fullName" | "phone">>,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     const updatedUser = await mockApi.updateProfile(user.id, updatedFields);
@@ -103,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     update: (userId: string) => Promise<AuthUser>,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     const updatedUser = await update(user.id);
@@ -130,17 +145,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     newPassword: string,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     await mockApi.changePassword(user.id, { currentPassword, newPassword });
   };
+
+  const requestPasswordReset = async (email: string) => {
+    const { demoCode } = await mockApi.requestPasswordReset(email);
+    return demoCode;
+  };
+
+  const verifyPasswordResetCode = (email: string, code: string) =>
+    mockApi.verifyPasswordResetCode(email, code);
+
+  const resetPassword = (
+    email: string,
+    resetToken: string,
+    newPassword: string,
+  ) => mockApi.resetPassword(email, resetToken, newPassword);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
+        logoutPending,
+        clearLogoutPending,
         loading: false,
         login,
         register,
@@ -151,13 +182,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         removeAddress,
         setDefaultAddress,
         changePassword,
+        requestPasswordReset,
+        verifyPasswordResetCode,
+        resetPassword,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
-
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);

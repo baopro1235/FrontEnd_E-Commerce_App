@@ -15,14 +15,8 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import PasswordStrength from '@/components/PasswordStrength'
+import AddressCombobox from '@/components/AddressCombobox'
 import { useRegisterActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
@@ -48,6 +42,7 @@ function RegisterPage() {
     handleSubmit,
     register,
   } = form
+  const password = form.watch('password') ?? ''
 
   return (
     <main className="auth-page">
@@ -129,44 +124,22 @@ function RegisterPage() {
                           (*)
                         </span>
                       </FieldLabel>
-                      <Select
-                        items={provinces.map((province) => ({
-                          label: province.name,
-                          value: String(province.code),
-                        }))}
-                        name={field.name}
-                        onValueChange={(value) => {
-                          const nextProvinceCode = value ?? ''
+                      <AddressCombobox
+                        describedBy="city-status"
+                        disabled={isLoadingProvinces || !!provinceError}
+                        emptyMessage="Không tìm thấy tỉnh/thành phố."
+                        id="city"
+                        inputRef={field.ref}
+                        invalid={!!errors.provinceCode}
+                        onBlur={field.onBlur}
+                        onValueChange={(nextProvinceCode) => {
                           field.onChange(nextProvinceCode)
                           handleProvinceChange(nextProvinceCode)
                         }}
-                        required
-                        value={field.value || null}
-                      >
-                        <SelectTrigger
-                          aria-describedby="city-status"
-                          aria-invalid={!!errors.provinceCode}
-                          className="w-full"
-                          disabled={isLoadingProvinces || !!provinceError}
-                          id="city"
-                          onBlur={field.onBlur}
-                          ref={field.ref}
-                        >
-                          <SelectValue placeholder="Chọn tỉnh / thành phố" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {provinces.map((province) => (
-                              <SelectItem
-                                key={province.code}
-                                value={String(province.code)}
-                              >
-                                {province.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                        options={provinces}
+                        placeholder="Tìm hoặc chọn tỉnh / thành phố"
+                        value={field.value}
+                      />
                       <FieldDescription
                         aria-live="polite"
                         className={
@@ -202,49 +175,27 @@ function RegisterPage() {
                   render={({ field }) => (
                     <Field data-invalid={!!errors.wardCode}>
                       <FieldLabel htmlFor="ward">Phường / Xã</FieldLabel>
-                      <Select
-                        items={wards.map((ward) => ({
-                          label: ward.name,
-                          value: String(ward.code),
-                        }))}
-                        name={field.name}
-                        onValueChange={(value) => field.onChange(value ?? '')}
-                        value={field.value || null}
-                      >
-                        <SelectTrigger
-                          aria-describedby="ward-status"
-                          aria-invalid={!!errors.wardCode}
-                          className="w-full"
-                          disabled={
-                            !selectedProvinceCode ||
-                            isLoadingWards ||
-                            !!wardError
-                          }
-                          id="ward"
-                          onBlur={field.onBlur}
-                          ref={field.ref}
-                        >
-                          <SelectValue
-                            placeholder={
-                              !selectedProvinceCode
-                                ? 'Chọn tỉnh/thành phố trước'
-                                : 'Chọn phường / xã'
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {wards.map((ward) => (
-                              <SelectItem
-                                key={ward.code}
-                                value={String(ward.code)}
-                              >
-                                {ward.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      <AddressCombobox
+                        describedBy="ward-status"
+                        disabled={
+                          !selectedProvinceCode ||
+                          isLoadingWards ||
+                          !!wardError
+                        }
+                        emptyMessage="Không tìm thấy phường/xã."
+                        id="ward"
+                        inputRef={field.ref}
+                        invalid={!!errors.wardCode}
+                        onBlur={field.onBlur}
+                        onValueChange={(value) => field.onChange(value)}
+                        options={wards}
+                        placeholder={
+                          !selectedProvinceCode
+                            ? 'Chọn tỉnh/thành phố trước'
+                            : 'Tìm hoặc chọn phường / xã'
+                        }
+                        value={field.value}
+                      />
                       <FieldDescription
                         aria-live="polite"
                         className={wardError ? 'text-destructive' : undefined}
@@ -308,6 +259,7 @@ function RegisterPage() {
                     {...register('password')}
                   />
                   <FieldError>{errors.password?.message}</FieldError>
+                  <PasswordStrength password={password} />
                 </Field>
 
                 <Field data-invalid={!!errors.confirmPassword}>

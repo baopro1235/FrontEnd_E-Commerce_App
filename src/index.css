@@ -10,6 +10,10 @@
   --text-h: #08060d;
   --bg: #fff;
   --border: oklch(0.922 0 0);
+  --password-weak: oklch(67.207% 0.21562 22.564);
+  --password-medium: oklch(72.48% 0.14793 90.807);
+  --success: oklch(0.5 0.14 145);
+  --password-strong: var(--success);
   --code-bg: #f4f3ec;
   --accent: oklch(0.97 0 0);
   --accent-bg: rgba(170, 59, 255, 0.1);
@@ -201,6 +205,10 @@ code {
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
+  --color-password-weak: var(--password-weak);
+  --color-password-medium: var(--password-medium);
+  --color-password-strong: var(--password-strong);
+  --color-success: var(--success);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
@@ -236,6 +244,10 @@ code {
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --password-weak: oklch(0.704 0.191 22.216);
+  --password-medium: oklch(0.78 0.14 80);
+  --success: oklch(0.73 0.16 145);
+  --password-strong: var(--success);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

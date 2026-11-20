@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type SubmitEvent } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router"
+import { toast } from "@/components/ui/toast"
 import { useAuth } from "@/context/AuthContext"
 import {
   loginSchema,
@@ -9,7 +10,7 @@ import {
   registerSchema,
   type RegisterInput,
 } from "@/features/auth/auth.schema"
-import { addressApi, type Province, type Ward } from "@/services/addressApi"
+import { addressApi, type Province, type Ward } from "@/services/addressService"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error
@@ -37,11 +38,141 @@ export function useLoginActions() {
     }
   }
 
-  function handleForgotPassword() {
-    setMessage("Chức năng khôi phục mật khẩu chưa được kết nối.")
+  return { form, message, handleLogin }
+}
+
+export function useForgotPasswordActions() {
+  const {
+    requestPasswordReset,
+    verifyPasswordResetCode,
+    resetPassword,
+  } = useAuth()
+  const [step, setStep] = useState(1)
+  const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [resetToken, setResetToken] = useState("")
+  const [resendCountdown, setResendCountdown] = useState(30)
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [apiError, setApiError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (step !== 2 || resendCountdown === 0) return
+
+    const timeoutId = window.setTimeout(
+      () => setResendCountdown((seconds) => seconds - 1),
+      1000,
+    )
+    return () => window.clearTimeout(timeoutId)
+  }, [resendCountdown, step])
+
+  async function handleRequestCode(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    setIsSubmitting(true)
+    try {
+      const code = await requestPasswordReset(email)
+      setApiError("")
+      setOtp("")
+      setResendCountdown(30)
+      setStep(2)
+      toast.add({
+        title: "Paint Shop",
+        description: `Mã xác minh: ${code}.`,
+        type: "success",
+        timeout: 30000,
+      })
+    } catch (error) {
+      toast.add({
+        title: "Paint Shop",
+        description: getErrorMessage(error),
+        type: "error",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  return { form, message, handleLogin, handleForgotPassword }
+  async function handleVerifyCode(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    setIsSubmitting(true)
+    try {
+      setResetToken(await verifyPasswordResetCode(email, otp))
+      setStep(3)
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleResendCode() {
+    setIsSubmitting(true)
+    try {
+      const code = await requestPasswordReset(email)
+      setOtp("")
+      setResendCountdown(30)
+      toast.add({
+        title: "Paint Shop",
+        description: `Mã xác minh: ${code}.`,
+        type: "success",
+        timeout: 30000,
+      })
+    } catch (error) {
+      toast.add({
+        title: "Paint Shop",
+        description: getErrorMessage(error),
+        type: "error",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function handleResetPassword(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setApiError("")
+    if (password !== confirmPassword) {
+      setPasswordError("Mật khẩu xác nhận không khớp.")
+      return
+    }
+
+    setPasswordError("")
+    setIsSubmitting(true)
+    try {
+      await resetPassword(email, resetToken, password)
+      setStep(4)
+    } catch (error) {
+      setApiError(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return {
+    step,
+    email,
+    setEmail,
+    otp,
+    setOtp,
+    resendCountdown,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    passwordError,
+    setPasswordError,
+    apiError,
+    isSubmitting,
+    goBack: () => setStep((currentStep) => currentStep - 1),
+    handleRequestCode,
+    handleVerifyCode,
+    handleResendCode,
+    handleResetPassword,
+  }
 }
 
 export function useRegisterActions() {

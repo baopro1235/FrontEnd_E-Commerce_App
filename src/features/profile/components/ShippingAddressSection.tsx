@@ -1,6 +1,8 @@
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react"
 import { Controller, type UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
+import SuccessMessage from "@/components/SuccessMessage"
+import AddressCombobox from "@/components/AddressCombobox"
 import {
   Card,
   CardContent,
@@ -16,16 +18,9 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { UserAddress } from "@/features/auth/auth.schema"
 import type { AddressForm } from "@/features/profile/profile.schema"
+import { cn } from "@/lib/utils"
 
 interface ShippingAddressSectionProps {
   addresses: UserAddress[]
@@ -101,9 +96,7 @@ function ShippingAddressSection({
           </p>
         )}
         {message && (
-          <p aria-live="polite" className="text-sm text-primary">
-            {message}
-          </p>
+          <SuccessMessage message={message} />
         )}
 
         {isFormOpen && (
@@ -147,43 +140,22 @@ function ShippingAddressSection({
                     <FieldLabel htmlFor="address-province">
                       Tỉnh / Thành phố
                     </FieldLabel>
-                    <Select
-                      items={provinces.map((province) => ({
-                        label: province.name,
-                        value: String(province.code),
-                      }))}
-                      name={field.name}
-                      onValueChange={(value) => {
-                        const nextProvinceCode = value ?? ""
+                    <AddressCombobox
+                      describedBy="address-province-status"
+                      disabled={isLoadingProvinces || !!provinceError}
+                      emptyMessage="Không tìm thấy tỉnh/thành phố."
+                      id="address-province"
+                      inputRef={field.ref}
+                      invalid={!!errors.provinceCode}
+                      onBlur={field.onBlur}
+                      onValueChange={(nextProvinceCode) => {
                         field.onChange(nextProvinceCode)
                         onProvinceChange(nextProvinceCode)
                       }}
-                      value={field.value || null}
-                    >
-                      <SelectTrigger
-                        aria-describedby="address-province-status"
-                        aria-invalid={!!errors.provinceCode}
-                        className="w-full"
-                        disabled={isLoadingProvinces || !!provinceError}
-                        id="address-province"
-                        onBlur={field.onBlur}
-                        ref={field.ref}
-                      >
-                        <SelectValue placeholder="Chọn tỉnh / thành phố" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {provinces.map((province) => (
-                            <SelectItem
-                              key={province.code}
-                              value={String(province.code)}
-                            >
-                              {province.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      options={provinces}
+                      placeholder="Tìm hoặc chọn tỉnh / thành phố"
+                      value={field.value}
+                    />
                     <FieldDescription
                       aria-live="polite"
                       className={provinceError ? "text-destructive" : undefined}
@@ -216,49 +188,27 @@ function ShippingAddressSection({
                 render={({ field }) => (
                   <Field data-invalid={!!errors.wardCode}>
                     <FieldLabel htmlFor="address-ward">Phường / Xã</FieldLabel>
-                    <Select
-                      items={wards.map((ward) => ({
-                        label: ward.name,
-                        value: String(ward.code),
-                      }))}
-                      name={field.name}
-                      onValueChange={(value) => field.onChange(value ?? "")}
-                      value={field.value || null}
-                    >
-                      <SelectTrigger
-                        aria-describedby="address-ward-status"
-                        aria-invalid={!!errors.wardCode}
-                        className="w-full"
-                        disabled={
-                          !selectedProvinceCode ||
-                          isLoadingWards ||
-                          !!wardError
-                        }
-                        id="address-ward"
-                        onBlur={field.onBlur}
-                        ref={field.ref}
-                      >
-                        <SelectValue
-                          placeholder={
-                            !selectedProvinceCode
-                              ? "Chọn tỉnh/thành phố trước"
-                              : "Chọn phường / xã"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {wards.map((ward) => (
-                            <SelectItem
-                              key={ward.code}
-                              value={String(ward.code)}
-                            >
-                              {ward.name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <AddressCombobox
+                      describedBy="address-ward-status"
+                      disabled={
+                        !selectedProvinceCode ||
+                        isLoadingWards ||
+                        !!wardError
+                      }
+                      emptyMessage="Không tìm thấy phường/xã."
+                      id="address-ward"
+                      inputRef={field.ref}
+                      invalid={!!errors.wardCode}
+                      onBlur={field.onBlur}
+                      onValueChange={(value) => field.onChange(value)}
+                      options={wards}
+                      placeholder={
+                        !selectedProvinceCode
+                          ? "Chọn tỉnh/thành phố trước"
+                          : "Tìm hoặc chọn phường / xã"
+                      }
+                      value={field.value}
+                    />
                     <FieldDescription
                       aria-live="polite"
                       className={wardError ? "text-destructive" : undefined}
@@ -314,7 +264,10 @@ function ShippingAddressSection({
           <ul className="flex flex-col gap-3">
             {addresses.map((address) => (
               <li
-                className="flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between"
+                className={cn(
+                  "flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between",
+                  address.isDefault && "border-success/40 bg-success/5",
+                )}
                 key={address.id}
               >
                 <div className="flex min-w-0 items-start gap-3">
@@ -324,11 +277,17 @@ function ShippingAddressSection({
                   />
                   <div className="flex min-w-0 flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">
+                      <p
+                        className={cn(
+                          "font-medium text-foreground",
+                          address.isDefault && "text-success",
+                        )}
+                      >
                         {address.label}
                       </p>
                       {address.isDefault && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+                          <Check aria-hidden="true" className="size-3" />
                           Mặc định
                         </span>
                       )}

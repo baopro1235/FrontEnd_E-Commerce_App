@@ -1,5 +1,7 @@
 import type { UseFormReturn } from "react-hook-form"
+import { ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import SuccessMessage from "@/components/SuccessMessage"
 import {
   Card,
   CardContent,
@@ -14,6 +16,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import PasswordStrength from "@/components/PasswordStrength"
 import type { PasswordForm } from "@/features/profile/profile.schema"
 
 interface SecuritySectionProps {
@@ -30,12 +33,14 @@ function SecuritySection({
   onSave,
 }: SecuritySectionProps) {
   const { errors, isSubmitting } = form.formState
+  const newPassword = form.watch("newPassword") ?? ""
 
   return (
     <Card id="security" className="scroll-mt-6">
       <CardHeader>
         <CardTitle>Bảo mật</CardTitle>
-        <CardDescription>
+        <CardDescription className="flex items-center gap-2 rounded-md border border-password-medium/40 bg-password-medium/10 px-3 py-2 font-medium text-password-medium">
+          <ShieldAlert aria-hidden="true" className="size-4 shrink-0" />
           Dùng mật khẩu mạnh và không chia sẻ mật khẩu với người khác.
         </CardDescription>
       </CardHeader>
@@ -72,6 +77,7 @@ function SecuritySection({
                 {...form.register("newPassword")}
               />
               <FieldError>{errors.newPassword?.message}</FieldError>
+              <PasswordStrength password={newPassword} />
             </Field>
             <Field data-invalid={!!errors.confirmPassword}>
               <FieldLabel htmlFor="confirm-new-password">
@@ -93,9 +99,7 @@ function SecuritySection({
             </p>
           )}
           {message && (
-            <p aria-live="polite" className="text-sm text-primary">
-              {message}
-            </p>
+            <SuccessMessage message={message} />
           )}
           <div className="flex justify-end">
             <Button disabled={isSubmitting} type="submit">

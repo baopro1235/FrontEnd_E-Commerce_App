@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -14,12 +15,21 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/context/AuthContext'
 import { useLoginActions } from '@/features/auth/hooks/useAuthActions'
 import '../auth-page.css'
 
 function LoginPage() {
-  const { form, message, handleLogin, handleForgotPassword } =
-    useLoginActions()
+  const location = useLocation()
+  const { logoutPending, clearLogoutPending } = useAuth()
+  const requiresLogin =
+    (location.state as { requiresLogin?: boolean } | null)?.requiresLogin ===
+    true
+  const { form, message, handleLogin } = useLoginActions()
+
+  useEffect(() => {
+    if (logoutPending) clearLogoutPending()
+  }, [clearLogoutPending, logoutPending])
 
   return (
     <main className="auth-page">
@@ -30,11 +40,19 @@ function LoginPage() {
               Đăng nhập
             </h1>
             <CardDescription>
-              Chào mừng bạn quay trở lại Paintmart.
+              Chào mừng bạn quay trở lại Paint Shop.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
+            {requiresLogin && (
+              <p
+                className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+                role="alert"
+              >
+                Vui lòng đăng nhập để truy cập trang này.
+              </p>
+            )}
             <form
               className="flex flex-col gap-5"
               onSubmit={form.handleSubmit(handleLogin)}
@@ -57,15 +75,12 @@ function LoginPage() {
                 <Field data-invalid={!!form.formState.errors.password}>
                   <div className="flex items-center justify-between gap-3">
                     <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
-                    <Button
+                    <Link
                       className="h-auto p-0 text-muted-foreground"
-                      onClick={handleForgotPassword}
-                      size="sm"
-                      type="button"
-                      variant="link"
+                      to="/forgot-password"
                     >
                       Quên mật khẩu?
-                    </Button>
+                    </Link>
                   </div>
                   <Input
                     autoComplete="current-password"
