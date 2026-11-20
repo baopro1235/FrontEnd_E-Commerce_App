@@ -82,6 +82,7 @@ export function useForgotPasswordActions() {
         title: "Paint Shop",
         description: `Mã xác minh: ${code}.`,
         type: "success",
+        timeout: 30000,
       })
     } catch (error) {
       toast.add({
@@ -118,6 +119,7 @@ export function useForgotPasswordActions() {
         title: "Paint Shop",
         description: `Mã xác minh: ${code}.`,
         type: "success",
+        timeout: 30000,
       })
     } catch (error) {
       toast.add({
