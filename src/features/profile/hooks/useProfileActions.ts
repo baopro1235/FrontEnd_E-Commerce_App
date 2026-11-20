@@ -11,7 +11,7 @@ import {
   type PasswordForm,
   type ProfileForm,
 } from "@/features/profile/profile.schema"
-import { addressApi, type Province, type Ward } from "@/services/addressApi"
+import { addressApi, type Province, type Ward } from "@/services/addressService"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Đã xảy ra lỗi không xác định."

@@ -12,7 +12,7 @@ import type {
   RegisterAccountInput,
   UserAddressInput,
 } from "../features/auth/auth.schema";
-import { mockApi } from "../mocks/userAPI";
+import { mockApi } from "../services/userService";
 
 interface LoginInput {
   email: string;
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updatedFields: Partial<Pick<AuthUser, "fullName" | "phone">>,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     const updatedUser = await mockApi.updateProfile(user.id, updatedFields);
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     update: (userId: string) => Promise<AuthUser>,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     const updatedUser = await update(user.id);
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     newPassword: string,
   ) => {
     if (!user) {
-      throw new Error("User is not authenticated");
+      throw new Error("Người dùng chưa đăng nhập");
     }
 
     await mockApi.changePassword(user.id, { currentPassword, newPassword });

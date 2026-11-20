@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState, type SubmitEvent } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router"
+import { toast } from "@/components/ui/toast"
 import { useAuth } from "@/context/AuthContext"
 import {
   loginSchema,
@@ -9,7 +10,7 @@ import {
   registerSchema,
   type RegisterInput,
 } from "@/features/auth/auth.schema"
-import { addressApi, type Province, type Ward } from "@/services/addressApi"
+import { addressApi, type Province, type Ward } from "@/services/addressService"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error
@@ -49,10 +50,8 @@ export function useForgotPasswordActions() {
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState("")
   const [otp, setOtp] = useState("")
-  const [demoCode, setDemoCode] = useState("")
   const [resetToken, setResetToken] = useState("")
   const [resendCountdown, setResendCountdown] = useState(30)
-  const [resendMessage, setResendMessage] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [passwordError, setPasswordError] = useState("")
@@ -74,13 +73,22 @@ export function useForgotPasswordActions() {
     setApiError("")
     setIsSubmitting(true)
     try {
-      setDemoCode(await requestPasswordReset(email))
+      const code = await requestPasswordReset(email)
+      setApiError("")
       setOtp("")
       setResendCountdown(30)
-      setResendMessage("")
       setStep(2)
+      toast.add({
+        title: "Paint Shop",
+        description: `Mã xác minh: ${code}.`,
+        type: "success",
+      })
     } catch (error) {
-      setApiError(getErrorMessage(error))
+      toast.add({
+        title: "Paint Shop",
+        description: getErrorMessage(error),
+        type: "error",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -101,16 +109,22 @@ export function useForgotPasswordActions() {
   }
 
   async function handleResendCode() {
-    setApiError("")
-    setResendMessage("")
     setIsSubmitting(true)
     try {
-      setDemoCode(await requestPasswordReset(email))
+      const code = await requestPasswordReset(email)
       setOtp("")
       setResendCountdown(30)
-      setResendMessage("Mã OTP demo mới đã được tạo.")
+      toast.add({
+        title: "Paint Shop",
+        description: `Mã xác minh: ${code}.`,
+        type: "success",
+      })
     } catch (error) {
-      setApiError(getErrorMessage(error))
+      toast.add({
+        title: "Paint Shop",
+        description: getErrorMessage(error),
+        type: "error",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -142,9 +156,7 @@ export function useForgotPasswordActions() {
     setEmail,
     otp,
     setOtp,
-    demoCode,
     resendCountdown,
-    resendMessage,
     password,
     setPassword,
     confirmPassword,

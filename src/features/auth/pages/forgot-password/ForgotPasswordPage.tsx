@@ -29,9 +29,7 @@ function ForgotPasswordPage() {
     setEmail,
     otp,
     setOtp,
-    demoCode,
     resendCountdown,
-    resendMessage,
     password,
     setPassword,
     confirmPassword,
@@ -110,7 +108,7 @@ function ForgotPasswordPage() {
               {step === 1
                 ? 'Nhập email đã đăng ký để bắt đầu khôi phục mật khẩu.'
                 : step === 2
-                  ? `Nhập mã OTP demo gồm 6 chữ số cho ${email}.`
+                  ? `Mã OTP gồm 6 chữ số đã gửi tới email: ${email}.`
                   : step === 3
                     ? 'Tạo mật khẩu mới cho tài khoản của bạn.'
                     : 'Mật khẩu của bạn đã được đặt lại thành công.'}
@@ -178,18 +176,14 @@ function ForgotPasswordPage() {
                     <FieldDescription>
                       Nhập mã gồm 6 chữ số để tiếp tục.
                     </FieldDescription>
-                    <FieldDescription>
-                      Mã OTP demo: <strong>{demoCode}</strong> (không gửi email)
-                    </FieldDescription>
                   </Field>
                   <p
                     aria-live="polite"
                     className="min-h-5 text-center text-sm text-muted-foreground"
                   >
-                    {resendMessage ||
-                      (resendCountdown > 0
-                        ? `Bạn có thể gửi lại mã sau 00:${String(resendCountdown).padStart(2, '0')}.`
-                        : '')}
+                    {resendCountdown > 0
+                      ? `Bạn có thể gửi lại mã sau 00:${String(resendCountdown).padStart(2, '0')}.`
+                      : ''}
                   </p>
                 </FieldGroup>
                 {apiError && (
@@ -275,7 +269,7 @@ function ForgotPasswordPage() {
                   <Check aria-hidden="true" className="size-7" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Mật khẩu đã được cập nhật trong API giả lập của ứng dụng.
+                  Mật khẩu đã được cập nhật.
                 </p>
                 <Link
                   className={buttonVariants({ className: 'h-11 w-full' })}

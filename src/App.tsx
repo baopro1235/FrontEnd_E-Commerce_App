@@ -5,6 +5,7 @@ import LoginPage from './features/auth/pages/login/LoginPage'
 import RegisterPage from './features/auth/pages/register/RegisterPage'
 import ProfilePage from './features/profile/pages/ProfilePage'
 import ProtectedRoute from './routes/ProtectedRoute'
+import { Toaster } from './components/ui/toast'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
+      <Toaster timeout={10000} />
     </BrowserRouter>
   )
 }

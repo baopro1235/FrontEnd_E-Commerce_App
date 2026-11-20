@@ -40,7 +40,7 @@ function LoginPage() {
               Đăng nhập
             </h1>
             <CardDescription>
-              Chào mừng bạn quay trở lại Paintmart.
+              Chào mừng bạn quay trở lại Paint Shop.
             </CardDescription>
           </CardHeader>
 
