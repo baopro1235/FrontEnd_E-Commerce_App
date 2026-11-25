@@ -33,6 +33,15 @@ const categories = [
 ];
 
 function CategoryList() {
+    const handleCategoryClick = (e: React.MouseEvent, categoryName: string) => {
+        e.preventDefault();
+        window.dispatchEvent(
+            new CustomEvent("navigate", {
+                detail: `/products?category=${encodeURIComponent(categoryName)}`,
+            })
+        );
+    };
+
     return (
         <section className="category-section">
             <div className="category-heading">
@@ -46,9 +55,10 @@ function CategoryList() {
             <div className="category-grid">
                 {categories.map((category) => (
                     <a
-                        href={`/products?category=${category.id}`}
+                        href={`/products?category=${encodeURIComponent(category.name)}`}
                         className="category-card"
                         key={category.id}
+                        onClick={(e) => handleCategoryClick(e, category.name)}
                     >
                         <div className={`category-visual ${category.color}`}>
                             <div className="paint-can">
@@ -61,8 +71,8 @@ function CategoryList() {
                             <h3>{category.name}</h3>
                             <p>{category.description}</p>
                             <span className="category-link">
-                Khám phá <span aria-hidden="true">→</span>
-              </span>
+                                Khám phá <span aria-hidden="true">→</span>
+                            </span>
                         </div>
                     </a>
                 ))}

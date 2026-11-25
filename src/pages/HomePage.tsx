@@ -24,7 +24,14 @@ function HomePage() {
                         phù hợp cho mọi công trình.
                     </p>
 
-                    <a href="/products" className="hero-button">
+                    <a
+                        href="/products"
+                        className="hero-button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            window.dispatchEvent(new CustomEvent("navigate", { detail: "/products" }));
+                        }}
+                    >
                         Khám phá sản phẩm
                     </a>
                 </div>
