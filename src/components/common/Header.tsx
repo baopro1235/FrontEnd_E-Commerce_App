@@ -1,4 +1,5 @@
 
+import { useCart } from "../../context/CartContext";
 import "./Header.css";
 
 interface HeaderProps {
@@ -6,6 +7,8 @@ interface HeaderProps {
 }
 
 function Header({ currentPath = "/" }: HeaderProps) {
+    const { totalItems } = useCart();
+
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent("navigate", { detail: path }));
@@ -28,6 +31,11 @@ function Header({ currentPath = "/" }: HeaderProps) {
                     <input
                         type="text"
                         placeholder="Tìm kiếm sản phẩm sơn..."
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                window.dispatchEvent(new CustomEvent("navigate", { detail: "/products" }));
+                            }
+                        }}
                     />
                     <button
                         type="button"
@@ -42,7 +50,16 @@ function Header({ currentPath = "/" }: HeaderProps) {
                 {/* User and Cart */}
                 <div className="header-actions">
                     <a href="/login" onClick={(e) => handleNavClick(e, "/login")}>Tài khoản</a>
-                    <a href="/cart" onClick={(e) => handleNavClick(e, "/cart")}>Giỏ hàng</a>
+                    <a
+                        href="/cart"
+                        className="cart-btn-link"
+                        onClick={(e) => handleNavClick(e, "/cart")}
+                    >
+                        🛒 Giỏ hàng
+                        {totalItems > 0 && (
+                            <span className="cart-badge">{totalItems}</span>
+                        )}
+                    </a>
                 </div>
             </div>
 

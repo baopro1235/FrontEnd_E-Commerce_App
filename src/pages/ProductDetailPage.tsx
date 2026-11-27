@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../types/Product";
 import { getProductBySlug, getProducts } from "../api/productService";
+import { useCart } from "../context/CartContext";
 import ProductCard from "../components/product/ProductCard";
 import "./ProductDetailPage.css";
 
@@ -11,6 +12,7 @@ interface ProductDetailPageProps {
 const DEFAULT_IMAGE = "/images/interior-paint.svg";
 
 function ProductDetailPage({ slug }: ProductDetailPageProps) {
+    const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -53,13 +55,14 @@ function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
     const handleAddToCart = () => {
         if (!product) return;
+        addToCart(product, quantity);
         setCartMessage(`✓ Đã thêm ${quantity} thùng "${product.name}" vào giỏ hàng!`);
         setTimeout(() => setCartMessage(""), 4000);
     };
 
     const handleBuyNow = () => {
         if (!product) return;
-        handleAddToCart();
+        addToCart(product, quantity);
         handleNavigate("/cart");
     };
 
