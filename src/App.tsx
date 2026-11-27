@@ -3,6 +3,8 @@ import Header from "./components/common/Header";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import CartPage from "./pages/CartPage";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
     const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -44,26 +46,9 @@ function App() {
             return <ProductsPage />;
         }
 
-        // Trang giỏ hàng (chuẩn bị cho P2)
+        // Trang giỏ hàng: /cart
         if (currentPath === "/cart") {
-            return (
-                <main style={{ maxWidth: "800px", margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
-                    <div style={{ fontSize: "50px", marginBottom: "16px" }}>🛒</div>
-                    <h2>Giỏ hàng của bạn</h2>
-                    <p style={{ color: "#6b7280", margin: "12px 0 24px" }}>
-                        Chức năng giỏ hàng chi tiết đang được chuẩn bị tích hợp trong module tiếp theo.
-                    </p>
-                    <button
-                        type="button"
-                        className="hero-button"
-                        onClick={() => {
-                            window.dispatchEvent(new CustomEvent("navigate", { detail: "/products" }));
-                        }}
-                    >
-                        Tiếp tục mua sắm
-                    </button>
-                </main>
-            );
+            return <CartPage />;
         }
 
         // Mặc định: Trang chủ
@@ -71,10 +56,12 @@ function App() {
     };
 
     return (
-        <div className="app-container">
-            <Header currentPath={currentPath} />
-            {renderContent()}
-        </div>
+        <CartProvider>
+            <div className="app-container">
+                <Header currentPath={currentPath} />
+                {renderContent()}
+            </div>
+        </CartProvider>
     );
 }
 
